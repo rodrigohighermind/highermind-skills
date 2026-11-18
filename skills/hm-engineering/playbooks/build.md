@@ -76,6 +76,7 @@ Duas entradas para o mesmo resultado (ao vivo e reprocessar, import e edição, 
 
 ## 5. Fechamento
 
+- Achado do `floor_guard` (supressão `noqa`, `type: ignore`, gambiarra de `sys.path`) se corrige na causa, nunca com outra supressão. Import quebrado em script ou bench se resolve rodando com o ambiente do projeto e o pacote instalado em modo editável (`pip install -e .`, `uv run`), não editando o caminho de import.
 - `floor_guard.py` mede desde o SHA do início da sessão (o hook grava em `.git/orbit-base`); sem hook, anotar `git rev-parse HEAD` antes da primeira mudança e passar `--since`.
 - Reler o plano e checar fatia por fatia contra o diff final.
 - Rodar o gate completo (`scripts/hm_gate.py`) e o smoke do fluxo principal.

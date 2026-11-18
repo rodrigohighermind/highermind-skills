@@ -133,6 +133,8 @@ Render de app nativo não passa por browser. Receita:
 - Lado a lado com a referência, na resolução real (sem escala), mesma tela e mesmo estado.
 - Conferir que toda descrição de uso do Info.plist tem o entitlement correspondente na assinatura (`codesign -d --entitlements - --xml`). Com hardened runtime, permissão sem entitlement é negada sem janela e sem erro: o botão "Conectar" simplesmente não faz nada. O `hm_gate` faz esse check.
 - Conferir o SDK gravado no binário (`otool -l` em `LC_BUILD_VERSION`, `sdk` maior ou igual ao sistema alvo): SDK antigo desenha chrome legado.
+- **Tema do app contra tema do sistema.** Controle nativo (menu suspenso, `NSPopUpButton`, checkbox, `Picker` em estilo menu) herda a aparência da **janela**, não o tema que o conteúdo desenha. App com tema próprio claro em sistema escuro (ou o contrário) deixa o controle invisível. Correção: fixar a aparência da janela no tema do app (`preferredColorScheme`/`NSAppearance`) ou usar componente próprio que desenha com os tokens do app. A revisão roda com o **sistema** nos dois modos, para cada tema do app.
+- **Formatação por locale explícito.** Todo formatter de data, número e moeda exibido leva o locale do produto (ou formato numérico fixo). Formatter sem locale segue o do processo e solta mês em inglês num app em português. A varredura procura formatter criado sem locale.
 - Conferir que o `minSize` declarado é o tamanho que o conteúdo realmente aceita: abaixo dele nada corta, nada sobrepõe, nada some.
 
 ## 7. Os sete eixos de avaliação

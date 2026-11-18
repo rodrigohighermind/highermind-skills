@@ -64,6 +64,8 @@ Anti-patterns:
 
 Interface "ao vivo" (transcrição, streaming, colaboração, progresso) mede o **atraso que a pessoa vê**, não o tempo de processamento. Atraso visível = do evento real até aparecer na tela. Rascunho parcial mostrado cedo, com o resultado final vindo da unidade completa, corta o atraso visível sem perder precisão. Métrica de aceite: mediana e p95 do atraso visível, comparados com a referência do produto.
 
+**Contexto lido durante o evento, não depois.** Insumo que o passo final vai precisar (contexto da tela, documento aberto, seleção) é coletado de forma assíncrona enquanto a pessoa ainda fala ou digita, e não no momento em que ela solta a tecla. Comando de voz é reconhecido por uma palavra de chamada no início, para o roteamento começar antes do fim da frase.
+
 **Especular para esconder pós-processamento.** Passo caro que roda depois da unidade completa (formatação, classificação, enriquecimento) roda antes, no parcial, enquanto o evento ainda acontece. Quando o final chega, se a entrada do passo bate com a do parcial, o resultado é reaproveitado; se não bate, roda de novo. A conferência é por igualdade da entrada, nunca "parecido o bastante".
 
 ## Database
