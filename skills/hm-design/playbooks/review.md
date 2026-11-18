@@ -28,6 +28,9 @@ Sem comparação lado a lado registrada, a entrega visual não está pronta pra 
 
 Vale desde o primeiro build de qualquer produto que tem referência.
 
+0. **Inventário antes de qualquer captura.** Extrair do próprio artefato da referência o que ele faz, nesta ordem: catálogo de strings e i18n do bundle (agrupado por prefixo, vira o mapa de telas, menus, estados e erros); código, para comportamento ambíguo; dados locais do app, para o comportamento real; só então capturas, incluindo hover, menus "…" e estados escondidos. Em catálogo multilíngue, todos os idiomas vivem no mesmo bundle: ler o objeto do idioma-alvo por uma âncora conhecida, nunca a primeira ocorrência da chave.
+   Saída obrigatória: matriz feature × referência × nosso × estado (`TEM`, `PARCIAL`, `FALTA`, `MELHOR`, `N/A`) × prioridade × evidência, versionada no repo (`docs/paridade/<referência>.md`). Declarar paridade sem essa matriz é `NOT_VERIFIED`.
+
 1. **Medir antes de construir.** Capturar a referência em 2x e medir posição e tamanho em pt, pesos e cores dos elementos estruturais (barra de título, controles da janela, sidebar, ícones, espaçamentos). Esses números viram a especificação; estimativa de olho erra por 2 pt sem ninguém perceber.
 2. **Régua automática.** Um script mede a mesma coisa na referência e na captura do produto e compara com tolerância de no máximo 1 pt. Contraprova obrigatória: referência contra ela mesma passa, versão com defeito plantado falha. Régua sem contraprova não é evidência.
 3. **Depois da régua, o olho.** Lado a lado na mesma escala. A régua não vê forma de glifo nem cor: ícone preenchido contra contorno, controle cinza contra branco, botão ausente.

@@ -49,7 +49,7 @@ Anti-patterns que reprovam direto:
 
 Teste ou smoke que escreve em banco com dado real cria registros com **marcador próprio** (coluna, prefixo ou tag de teste) e remove **só por id exato** dos registros que criou. Nunca por janela de tempo, padrão de texto ou "os últimos N".
 
-Antes de qualquer `DELETE`, rodar `SELECT` com o mesmo `WHERE` e conferir que a contagem é exatamente a esperada. Comparação de data entre formatos diferentes (ISO com `T` contra texto com espaço, timezone, epoch) erra em silêncio: normalizar os dois lados ou comparar por id.
+Antes de qualquer `DELETE`, rodar `SELECT` com o mesmo `WHERE` e conferir que a contagem é exatamente a esperada. Marcador não basta quando o teste se passa por uso real (um teste que finge ser um app ou usuário real grava como real): limpar pelo **delta de ids** (ids depois menos ids antes do teste) e abortar a limpeza se o delta não for exatamente o que o teste criou. Comparação de data entre formatos diferentes (ISO com `T` contra texto com espaço, timezone, epoch) erra em silêncio: normalizar os dois lados ou comparar por id.
 
 ## RLS · regra absoluta (Supabase / Postgres com PostgREST)
 
