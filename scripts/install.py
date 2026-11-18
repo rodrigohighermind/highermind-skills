@@ -288,9 +288,12 @@ def apply(plan: Plan, dist: Path, version: str, stamp: str, on_failure: bool, jo
         shutil.move(str(hook_dir), str(destination))
         journal.moves.append((hook_dir, destination))
     if hook_staging is not None:
-        previous_log = backup_root / f"hook-{HOOK_DIR}" / TELEMETRY
-        if previous_log.is_file():
-            shutil.copy2(previous_log, hook_staging / TELEMETRY)
+        for name in RUNTIME_STATE - {"__pycache__"}:
+            previous = backup_root / f"hook-{HOOK_DIR}" / name
+            if previous.is_file():
+                shutil.copy2(previous, hook_staging / name)
+            elif previous.is_dir():
+                shutil.copytree(previous, hook_staging / name)
         publish(hook_staging, hook_dir, journal)
         hooks = settings.setdefault("hooks", {})
         assert isinstance(hooks, dict)  # garantido por load_settings
