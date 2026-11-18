@@ -37,6 +37,7 @@ from build import build, load_manifest
 MARKER = ".hm-skill-install.json"
 HOOK_MARKER = ".hm-orbit-install.json"
 TELEMETRY = "telemetry.jsonl"  # dado de uso, escrito pelos hooks: fora do hash e preservado na troca
+RUNTIME_STATE = {TELEMETRY, ".sessions", "__pycache__"}  # tudo que os hooks escrevem em execução
 SUITE = "hm-skills-orbit"
 LEGACY_SUITE = "highermind-skills"
 HOOK_DIR = "hm-orbit"
@@ -114,7 +115,7 @@ def publish(staging: Path, target: Path, journal: Journal) -> None:
 
 def tree_digest(path: Path) -> str:
     digest = hashlib.sha256()
-    for file in sorted(p for p in path.rglob("*") if p.is_file() and p.name not in {MARKER, HOOK_MARKER, ".DS_Store", TELEMETRY} and "__pycache__" not in p.parts):
+    for file in sorted(p for p in path.rglob("*") if p.is_file() and p.name not in {MARKER, HOOK_MARKER, ".DS_Store"} and not RUNTIME_STATE.intersection(p.relative_to(path).parts)):
         digest.update(str(file.relative_to(path)).encode())
         digest.update(file.read_bytes())
     return digest.hexdigest()
