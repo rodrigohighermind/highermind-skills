@@ -1,0 +1,4 @@
+interface:
+  display_name: "HM Engineering"
+  short_description: "Constrói, depura e entrega software com evidência"
+  default_prompt: "Use $hm-engineering para implementar esta mudança e provar o baseline-ready."

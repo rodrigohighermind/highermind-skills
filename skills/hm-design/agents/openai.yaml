@@ -1,0 +1,4 @@
+interface:
+  display_name: "HM Design"
+  short_description: "Cria e valida experiências com identidade"
+  default_prompt: "Use $hm-design para dirigir, construir ou revisar esta experiência."

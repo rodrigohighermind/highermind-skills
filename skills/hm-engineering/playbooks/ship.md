@@ -1,0 +1,188 @@
+# Playbook · Ship
+
+Carregado no modo `ship`: QA + validação de deploy + gate mecânico antes de declarar baseline-ready. Princípio: código não verificado é suposição; segurança é testada ANTES de funcionalidade; deploy frágil = produto frágil.
+
+## Ordem de execução
+
+1. **Security gate.** CRÍTICO de segurança encontrado = parar; rodar o resto só pra mapa, nunca pra shippar.
+2. **Gate mecânico** (typecheck, lint, build, testes).
+3. **QA funcional + edge cases.**
+4. **Checks do modelo de distribuição.**
+5. **Smoke do fluxo real.**
+6. **Evidence bundle.**
+
+Owner pode pedir override ("ship mesmo com X aberto"): reportar o estado, Owner decide. Informar, não bloquear autoritariamente; mas nunca declarar baseline-ready com mínimo vermelho.
+
+## 1. Security gate (bloqueante)
+
+Quick pass; auditoria profunda em `playbooks/security.md`.
+
+- `npm audit --production` / `pip audit`: zero HIGH/CRITICAL.
+- Docker: `.dockerignore` presente, multi-stage, non-root, sem `--reload`/dev server, zero secret em Dockerfile/compose.
+- Grep de secrets: `sk-ant-`, `sk_live_`, `AKIA`, `password=`, `-----BEGIN.*KEY`. `.env` no `.gitignore`. `git log --all -S "sk-ant"` limpo.
+- Por endpoint: auth presente, input validation, IDOR mental (`'; DROP TABLE`, `<script>`, `../../etc/passwd`), rate limit em rota pública, CORS restrito, headers.
+- Supabase: `supabase db advisors --linked --level error` = `No issues found` + `scripts/audit-rls.sh` verde.
+
+## 2. Gate mecânico
+
+Rodar `scripts/hm_gate.py --root <projeto> --distribution personal|saas` quando aplicável, mais os checks que o gate não descobre:
+
+```bash
+tsc --noEmit          # ou mypy/pyright: zero erros
+eslint . / ruff check # zero erros
+<test runner>         # total, passando, falhando, flaky
+bun run build         # build de produção sobe
+```
+
+- Zero `console.error` novo e zero TODO crítico novo nos arquivos tocados na branch (TODO cosmético é aceitável).
+- Reportar a suíte com números: total, passando, falhando (com detalhe de cada), skipped, flaky. "Tudo passando" sem checar se os testes testam a coisa certa não é evidência.
+
+### Gaps de teste
+
+O que NÃO está testado importa mais do que o que está:
+
+- Lógica de negócio sem unit test; endpoint sem teste de integração; fluxo de usuário sem cobertura e2e.
+- Fluxos de auth/authz sem teste; estados de erro assumidos mas nunca verificados; edge cases (vazio, limite, concorrência).
+- Gap crítico encontrado = escrever o teste, não só descrever. Prioridade: auth/authz/input validation > fluxos críticos (pagamento, features core) > edge cases > estados de erro.
+
+### Verificação de agente (se o projeto tem agente AI)
+
+- O loop termina (max iterations, timeout, token limits)?
+- Tools executam e retornam feedback; o agente não alucina tool inexistente.
+- Erro em uma tool não quebra o loop inteiro.
+- Contexto não estoura; custo por interação dentro do esperado.
+
+## 3. Distribution model define os checks
+
+Identificar o modelo ANTES de auditar. Pular o que não se aplica é parte do trabalho; marcar `NOT_APPLICABLE` no bundle. App Electron não tem `.dockerignore`; library npm não tem migrations.
+
+### Container/Docker
+
+Seção 4 inteira, abaixo.
+
+### Serverless/Edge (Vercel, CF Workers)
+
+- Build output dentro do limite (Vercel: 50MB unzipped por function).
+- Cold start <1s em rota crítica; senão, warming ou edge runtime.
+- Env vars sensíveis no dashboard, NUNCA em `next.config`.
+- Constraints de edge runtime respeitadas: sem `node:` modules, sem fs, sem native addon.
+- ISR/cache headers configurados. Domain + SSL prontos pré-deploy.
+
+### Desktop (Electron/Tauri)
+
+- `contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`, `webSecurity: true` (nunca `false`).
+- Preload exporta só APIs mínimas via `contextBridge`; nada perigoso exposto ao renderer.
+- Code signing configurado, ou warning documentado se dev sem identity.
+- Auto-update definido (electron-updater) ou ship manual declarado.
+- ALERTA: `.env` copiado pro bundle (`Resources/`) vaza secret se o app for distribuído. Documentar.
+- Native modules (sqlite, sharp) com rebuild de ABI correto pro Electron; versão do Electron sem CVE HIGH.
+- Bundle id (macOS) / `setAppUserModelId` (Windows) corretos.
+
+### Mobile (Expo/RN)
+
+- EAS build profiles (development, preview, production) configurados.
+- Certificados/provisioning iOS via EAS; keystore Android em local seguro, FORA do repo.
+- `app.json` com bundle ID, version, build number corretos.
+- Permissions declaradas com justificativa (camera, location).
+- App Transport Security: zero `NSAllowsArbitraryLoads = true` em prod.
+- OTA updates (`expo-updates`) configuradas ou versão nativa pinada; native modules compatíveis com o SDK.
+
+### Library/SDK (npm, PyPI)
+
+- Lock file commitado; `exports` map (ESM + CJS quando aplicável); types corretos.
+- `files` limita o publish: sem `node_modules`, sem `.env`, sem testes.
+- Zero `any` no surface público. Semver honesto: breaking = major.
+- README com install + quick start + API reference.
+- Supply chain: provenance (npm provenance ou cosign); CI de publish via OIDC, sem token secreto no repo; tag git assinada por release.
+
+### CLI tool
+
+- Cross-platform builds quando há chance de share futuro, mesmo entre máquinas pessoais: adicionar target agora é mais barato que retrofit.
+- Binário assinado (Apple Developer ID, Authenticode) quando distribui.
+- UM caminho canônico de install. Nunca dois scripts com defaults diferentes (`/usr/local/bin` com sudo vs `~/.local/bin` sem): quem retoma o projeto não sabe qual rodar. Padronizar um, deletar o outro.
+- `--help` cobre todos os comandos; `--version` reporta. Update check opt-in, sem auto-update silencioso.
+- Logs no path padrão do OS (`XDG_STATE_HOME`, `~/Library/Logs`).
+- First-run from scratch testado de verdade: `HOME=/tmp/scratch <comando>` valida dirs 0700, config 0600, DB inicializado.
+
+## 4. Container: subida, rebuild, dados
+
+- `docker compose up` sobe tudo; containers HEALTHY, não só running; ordem de dependência correta; logs de startup limpos.
+- Rebuild reflete mudança de código (`compose build <svc> && compose up -d <svc>`). Imagem final razoável (Python slim <200MB, Node alpine <150MB).
+- **Dados sagrados**: volumes nomeados; `docker compose down` sem `-v` preserva tudo; dado sobrevive a rebuild.
+- `.env.example` com TODAS as variáveis; ports documentados sem colisão com outros projetos; port hardcoded em código é finding.
+
+### Registro de ports (projetos paralelos na mesma máquina)
+
+Manter registro vivo dos ports de todos os projetos do ecossistema. Faixa pra projeto novo: API 8000+N, Web 3000+N, Postgres 5432+N, Redis 6379+N, onde N é o próximo livre. Anti-patterns: dois projetos disputando 5432 ou 3000; port hardcoded em código; port divergente entre `.env.example` e `docker-compose.yml`.
+
+## 5. Migrations e rollback
+
+- Migrations rodam automaticamente no boot, em ordem, sem gaps. Schema atual = soma das migrations.
+- Nenhuma migration destrutiva sem backup + confirmação. Roll-forward não destrói dado existente.
+- Plano de rollback explícito antes do deploy: como voltar a versão anterior de código E o que acontece com o schema. Rollback frágil é finding ALTO.
+- Mudança de schema incompatível segue expand/contract: 1) migration aditiva (coluna nova, nullable), 2) código novo escreve nos dois, 3) backfill, 4) código lê do novo, 5) migration de remoção só depois que o rollback window fechou. Assim a migration nova é sempre backward-compatible com o código anterior durante a janela de rollback.
+- Backup verificado ANTES de deploy que toca schema em produção. "Verificado" = restore testado, não arquivo existente.
+
+## 6. Health e observabilidade
+
+- `/health` verifica dependências reais (DB ping, Redis ping), nunca `{"status":"ok"}` fixo. False healthy mascara falha.
+- Logs estruturados, com contexto pra debugar, sem secrets/tokens/PII.
+- Erro de produção chega em alguém (alerta, email, canal), não morre em log.
+
+## 7. Smoke do fluxo real
+
+Responsabilidade do Dev Team, nunca do Owner. Não é "build compila": é dirigir o fluxo principal de verdade.
+
+- Subir o build local, navegar o fluxo primário end-to-end como usuário, observar resultado e console.
+- Forms: submit, validação, duplo submit bloqueado, reset limpa de verdade.
+- O que não foi possível exercitar (sem browser, sem device, sem credencial) declara-se `NOT_VERIFIED` com motivo. "Não testei UI" é resposta válida; "tudo ok" sem ter olhado não é.
+
+### Edge cases recorrentes (rede final, 80% dos bugs vivem aqui)
+
+- **Forms**: vazio, 1 char, max+1, paste de 1MB, unicode/emoji, null bytes; validação client + server idênticas; fallback manual quando lookup falha.
+- **Streaming**: conexão cortada no meio tem retry; marker de interrupção no DB; timeout no request inteiro; dedupe de geração cara.
+- **Erros 4xx/5xx**: cada erro com CTA acionável; mensagem nunca é código cru ("HTTP 500", "ECONNRESET"); 429 diz quando tentar de novo.
+- **Estados de UI**: empty desenhado, loading com skeleton (não spinner genérico), disabled claro, hover e focus visíveis.
+- **Mobile**: media queries <920px e <540px, touch targets >=44px, font-size >=16px em input iOS (zoom), sem scroll horizontal.
+- **LLM-app**: conversa 50+ turns não quebra; refresh duplo não cobra 2x; key trocada via UI vale sem restart; custo por sessão conhecido.
+- **Concorrência**: 2 abas simultâneas não colidem; click duplo em mutação protegido; write race com transaction + unique index.
+- **Dados**: operação destrutiva confirma; backup automático em momento chave; dado persiste entre restarts.
+
+## 8. Reprodutibilidade: clone limpo
+
+1. Clone do repo. 2. `cp .env.example .env`. 3. Comando único de subida. 4. Funciona?
+
+Cada passo manual não documentado é dívida. O padrão: engenheiro novo na segunda-feira roda o projeto antes do almoço.
+
+## 9. Custo (se usa APIs pagas)
+
+- Quantas calls um fluxo típico gera; contexto enviado é o mínimo; calls redundantes cacheadas.
+- Background tasks sem custo desnecessário. Estimativa por usuário/mês aceitável e registrada.
+- Ferramenta pessoal com LLM: confirmar padrão CLI de assinatura, sem `*_API_KEY` no env (ver `playbooks/llm.md` §0).
+
+## 9b. Acessibilidade básica (quick pass)
+
+Contraste WCAG AA; navegação por teclado; focus states em interativos; alt text; labels em forms. Auditoria visual profunda é território de `hm-design`; aqui é rede mínima antes do baseline.
+
+## 9b2. Exceção declarada no gate
+
+Quando um teste precisa de uma key falsa para provar que a real não vaza, a linha leva `# hm-gate: sentinel <motivo>`. Sem motivo não vale, e linha com client de API paga nunca é exceção.
+
+## 9c. Floor guard (o diff não pode rebaixar a barra)
+
+`python3 scripts/floor_guard.py --root <projeto>` (base: `.git/orbit-base` gravado no início da sessão, ou `--since <sha>`) lê o diff contra a base e falha quando a mudança rebaixa a barra em vez de cumpri-la: teste ou assert removido, `.skip`/`.only`/`xit`, supressão nova (`noqa`, `type: ignore`, `ts-ignore`, `eslint-disable`, `@ts-expect-error`), threshold de cobertura afrouxado, secret com cara de credencial. Exit 0 limpo · 1 violação · 2 não rodou (nunca lido como 0). Violação justificada é declarada no fechamento, com motivo, nunca silenciada.
+
+## 10. Evidence bundle
+
+Consolidar tudo em um bundle único, cada check com resultado real:
+
+```
+GATE MECÂNICO      typecheck · lint · build · testes (números, não adjetivos)
+SECURITY GATE      cada check: PASS/FAIL + fix se FAIL
+DISTRIBUIÇÃO       checks do modelo: PASS/FAIL/NOT_APPLICABLE
+DADOS              migrations, rollback plan, backup: PASS/FAIL
+SMOKE              fluxo dirigido + o que ficou NOT_VERIFIED e por quê
+CUSTO              estimativa por operação/usuário quando aplicável
+```
+
+Separar `PASS`, `FAIL`, `NOT_APPLICABLE` e `NOT_VERIFIED` sem misturar. Baseline-ready só com todos os mínimos verdes; qualquer FAIL bloqueante ou mínimo `NOT_VERIFIED` = declarar o estado exato que impede, não compensar com "passou no resto". Product-ready segue sendo do Owner.

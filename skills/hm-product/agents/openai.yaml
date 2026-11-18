@@ -1,0 +1,4 @@
+interface:
+  display_name: "HM Product"
+  short_description: "Transforma visão em decisão e especificação"
+  default_prompt: "Use $hm-product para decidir, especificar ou aprender com esta iniciativa."
