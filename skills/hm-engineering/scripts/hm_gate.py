@@ -7,6 +7,7 @@ import argparse
 import json
 import os
 import platform
+import plistlib
 import re
 import subprocess
 import sys
@@ -487,6 +488,71 @@ def scan_macos_sdk(root: Path) -> Check:
     return Check("SDK do app macOS", "PASS", f"{len(binaries)} binário(s) com sdk >= macOS {system_major}")
 
 
+# Descrição de uso no Info.plist -> entitlement que a assinatura precisa ter. Com hardened runtime ou
+# sandbox, o pedido de permissão sem o entitlement é negado sem janela e sem erro.
+USAGE_ENTITLEMENTS = {
+    "NSMicrophoneUsageDescription": "com.apple.security.device.audio-input",
+    "NSCameraUsageDescription": "com.apple.security.device.camera",
+    "NSCalendarsUsageDescription": "com.apple.security.personal-information.calendars",
+    "NSCalendarsFullAccessUsageDescription": "com.apple.security.personal-information.calendars",
+    "NSCalendarsWriteOnlyAccessUsageDescription": "com.apple.security.personal-information.calendars",
+    "NSRemindersUsageDescription": "com.apple.security.personal-information.calendars",
+    "NSRemindersFullAccessUsageDescription": "com.apple.security.personal-information.calendars",
+    "NSContactsUsageDescription": "com.apple.security.personal-information.addressbook",
+    "NSLocationUsageDescription": "com.apple.security.personal-information.location",
+    "NSLocationWhenInUseUsageDescription": "com.apple.security.personal-information.location",
+    "NSLocationAlwaysAndWhenInUseUsageDescription": "com.apple.security.personal-information.location",
+    "NSPhotoLibraryUsageDescription": "com.apple.security.personal-information.photos-library",
+    "NSHealthShareUsageDescription": "com.apple.developer.healthkit",
+    "NSHealthUpdateUsageDescription": "com.apple.developer.healthkit",
+}
+
+
+def missing_entitlements(usage_keys: list[str], entitlements: dict[str, object], restricted: bool) -> list[str]:
+    if not restricted:
+        return []
+    return sorted({f"{key} sem {USAGE_ENTITLEMENTS[key]}" for key in usage_keys if key in USAGE_ENTITLEMENTS and entitlements.get(USAGE_ENTITLEMENTS[key]) is not True})
+
+
+def has_hardened_runtime(codesign_info: str) -> bool:
+    """`flags=0x10000(runtime)` ou `flags=0x10002(adhoc,runtime)`: a flag vem numa lista."""
+    match = re.search(r"flags=0x[0-9a-f]+\(([^)]*)\)", codesign_info)
+    return bool(match) and "runtime" in match.group(1).split(",") if match else False
+
+
+def read_signature(app: Path, root: Path) -> tuple[dict[str, object], bool] | None:
+    """(entitlements, restrito por hardened runtime ou sandbox) da assinatura do .app."""
+    ents = run_process(["codesign", "-d", "--entitlements", "-", "--xml", str(app)], root)
+    info = run_process(["codesign", "-dv", str(app)], root)
+    if ents is None or info is None or info.returncode != 0:
+        return None
+    raw = ents.stdout.encode()
+    start = raw.find(b"<?xml")
+    entitlements = plistlib.loads(raw[start:]) if start >= 0 else {}
+    restricted = has_hardened_runtime(info.stderr) or entitlements.get("com.apple.security.app-sandbox") is True
+    return (entitlements if isinstance(entitlements, dict) else {}), restricted
+
+
+def scan_macos_entitlements(root: Path) -> Check:
+    apps = sorted({p.parent.parent for p in macos_app_binaries(root) if p.parent.name == "MacOS" and p.parent.parent.name == "Contents"})
+    if not apps:
+        return Check("entitlements do app macOS", "NOT_APPLICABLE", "nenhum .app assinado para conferir")
+    problems: list[str] = []
+    for contents in apps:
+        app = contents.parent
+        plist = contents / "Info.plist"
+        if not plist.exists():
+            continue
+        usage = [k for k in plistlib.loads(plist.read_bytes()) if k.endswith("UsageDescription")]
+        signature = read_signature(app, root)
+        if signature is None:
+            return Check("entitlements do app macOS", "NOT_VERIFIED", f"codesign falhou em {app.name}")
+        problems.extend(f"{app.name}: {item}" for item in missing_entitlements(usage, *signature))
+    if problems:
+        return Check("entitlements do app macOS", "FAIL", "permissão será negada sem janela: " + "; ".join(problems))
+    return Check("entitlements do app macOS", "PASS", f"{len(apps)} app(s): toda descrição de uso tem o entitlement")
+
+
 def plan_checks(root: Path, base: str | None, distribution: str) -> list[Check]:
     commands = project_commands(root)
     checks = [Check(role, "NOT_VERIFIED", "planejado: " + " ".join(command)) for role, command in commands]
@@ -498,7 +564,7 @@ def plan_checks(root: Path, base: str | None, distribution: str) -> list[Check]:
     else:
         checks.append(missing_quality_check(root))
     checks.extend(scan_changed_code(root, base))
-    checks.extend([scan_rls(root), scan_llm_api_cost(root, distribution), scan_macos_sdk(root)])
+    checks.extend([scan_rls(root), scan_llm_api_cost(root, distribution), scan_macos_sdk(root), scan_macos_entitlements(root)])
     return checks
 
 
@@ -518,7 +584,7 @@ def execute_checks(root: Path, timeout: int, base: str | None, distribution: str
     else:
         checks.append(missing_quality_check(root))
     checks.extend(scan_changed_code(root, base))
-    checks.extend([scan_rls(root), scan_llm_api_cost(root, distribution), scan_macos_sdk(root)])
+    checks.extend([scan_rls(root), scan_llm_api_cost(root, distribution), scan_macos_sdk(root), scan_macos_entitlements(root)])
     return checks
 
 

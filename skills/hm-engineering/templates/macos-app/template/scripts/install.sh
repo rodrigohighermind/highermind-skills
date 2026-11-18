@@ -22,6 +22,10 @@ if [ -f "$ROOT/Resources/AppIcon.icns" ]; then  # optional: drop an AppIcon.icns
   cp "$ROOT/Resources/AppIcon.icns" "$STAGE/Contents/Resources/AppIcon.icns"
   ICON_KEY="<key>CFBundleIconFile</key><string>AppIcon</string>"
 fi
+# Privacy permissions: Info.plist keys and entitlements come from the same file (permissions.json).
+PERMISSION_KEYS="$(python3 "$ROOT/tools/permissions.py" plist-keys)"
+ENTITLEMENTS="$(mktemp -t app-entitlements).plist"
+python3 "$ROOT/tools/permissions.py" entitlements "$ENTITLEMENTS"
 cat > "$STAGE/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -36,6 +40,7 @@ cat > "$STAGE/Contents/Info.plist" <<PLIST
   <key>LSMinimumSystemVersion</key><string>26.0</string>
   <key>NSHighResolutionCapable</key><true/>
   $ICON_KEY
+$PERMISSION_KEYS
 </dict></plist>
 PLIST
 
@@ -43,13 +48,16 @@ PLIST
 # Without one, ad-hoc signing works but macOS asks for those permissions again after every build.
 IDENTITY="$(security find-identity -v -p codesigning 2>/dev/null | awk -F'"' '/Apple Development/ {print $2; exit}')"
 if [ -n "$IDENTITY" ]; then
-  codesign --force --deep --sign "$IDENTITY" "$STAGE" >/dev/null
+  codesign --force --deep --options runtime --entitlements "$ENTITLEMENTS" --sign "$IDENTITY" "$STAGE" >/dev/null
   echo "signed with: $IDENTITY"
 else
-  codesign --force --deep --sign - "$STAGE" >/dev/null
+  codesign --force --deep --options runtime --entitlements "$ENTITLEMENTS" --sign - "$STAGE" >/dev/null
   echo "WARNING: no 'Apple Development' identity found; signed ad-hoc." >&2
   echo "WARNING: privacy permissions (microphone, accessibility, screen) will be requested again after every build." >&2
 fi
+
+# A usage description without its entitlement is denied silently under hardened runtime: refuse to install.
+python3 "$ROOT/tools/permissions.py" verify "$STAGE"
 
 # Replace the installed copy (only this app's bundle path) and launch it.
 pkill -f "$APP/Contents/MacOS/$EXE" 2>/dev/null || true

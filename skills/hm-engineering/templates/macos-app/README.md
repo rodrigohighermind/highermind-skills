@@ -18,6 +18,7 @@ O gerador troca nome visível (aceita espaço e acento), módulo Swift e bundle 
 | Tokens | cores dinâmicas e papéis tipográficos em `Theme.swift`; curva de movimento nomeada |
 | Camada por cima | fundo em camada própria só com fade cobrindo a janela inteira; caixa sem fantasma, com mola; saída junto; reduzir movimento = fade |
 | Instalação | assina com "Apple Development" se houver (mantém permissões entre builds); senão ad-hoc com aviso; verificação de vida |
+| Permissões | `permissions.json` é a fonte única: gera as descrições de uso do Info.plist **e** os entitlements da assinatura (hardened runtime). O install confere o app assinado e recusa instalar se faltar entitlement, porque a permissão seria negada sem janela e sem erro. HealthKit, câmera, calendário, contatos, localização, fotos e microfone mapeados. |
 | QA | `APP_PREVIEW`, `APP_SLOW_MOTION`, `APP_DEMO_MODAL`, `APP_SMOKE`; `tools/design_parity.py` (≤1 pt, com contraprova); evidência em `.orbit/review/` |
 | Gate | `hm-quality.json`: typecheck, lint (release sem warning), `swift test`, smoke e `macos_apps` para o check de SDK |
 

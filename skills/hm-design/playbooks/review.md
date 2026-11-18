@@ -126,6 +126,7 @@ Render de app nativo não passa por browser. Receita:
 - Capturar a janela real: `screencapture -l <windowid>`, com o id vindo de `CGWindowListCopyWindowInfo` (filtrar pelo nome do processo).
 - Duas larguras: a janela padrão e a **janela mínima**, que é o "mobile" do desktop. Nas duas, modo claro e escuro.
 - Lado a lado com a referência, na resolução real (sem escala), mesma tela e mesmo estado.
+- Conferir que toda descrição de uso do Info.plist tem o entitlement correspondente na assinatura (`codesign -d --entitlements - --xml`). Com hardened runtime, permissão sem entitlement é negada sem janela e sem erro: o botão "Conectar" simplesmente não faz nada. O `hm_gate` faz esse check.
 - Conferir o SDK gravado no binário (`otool -l` em `LC_BUILD_VERSION`, `sdk` maior ou igual ao sistema alvo): SDK antigo desenha chrome legado.
 - Conferir que o `minSize` declarado é o tamanho que o conteúdo realmente aceita: abaixo dele nada corta, nada sobrepõe, nada some.
 
