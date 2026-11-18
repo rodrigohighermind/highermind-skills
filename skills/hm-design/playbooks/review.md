@@ -96,6 +96,15 @@ Sem a prova da linha, o item é `NOT_VERIFIED`, nunca PASS. Screenshot parado s�
 
 Estado que só existe com permissão do sistema ou hardware (gravação ativa, câmera, localização) ganha gancho de QA: a interface aceita o estado injetado por variável de ambiente, alimentado por dados reais produzidos por outro processo. Assim o estado é revisado e capturado sem a permissão, e a prova de "estado forçado e visto" (§6a) vale para ele também.
 
+## 6a3. Honestidade do dado
+
+Para cada campo exibido, perguntar: **de onde vem isso e qual a certeza?** Em produto onde o dado decide algo (saúde, dinheiro, prazo), dado errado na tela é pior que tela feia.
+
+- **Desconhecido não vira default.** Hora, valor ou nome que o sistema não sabe tem estado próprio no modelo (`time_known=false`, `estimated=true`, `null` com motivo) e aparência própria na interface (só o dia, traço, "estimado", "não informado"). Metadado de arquivo (hora de criação, de exportação) não é a hora do evento.
+- **Progresso diz a verdade.** Esperando, trabalhando (com porcentagem ou tempo real restante) e pronto são estados distintos. Spinner em item que está só na fila é mentira.
+- **Ação sem objeto fica desabilitada.** Copiar, exportar ou enviar sem conteúdo não aparece ativo.
+- **Revisar com dado real e volume real.** O defeito aparece com a fila cheia, a lista longa e o dado importado, não com um item de exemplo.
+
 ## 6b. Acessibilidade que costuma escapar (WCAG 2.2)
 
 Além de contraste, foco visível e teclado:
@@ -151,6 +160,7 @@ Qualquer item presente = FAIL direto, com localizador:
 - [ ] wrapper/classe/margin fora do DS quando existe referência
 - [ ] console.error durante o fluxo revisado
 - [ ] qualquer defeito da classe de acabamento (§6a)
+- [ ] campo que afirma mais do que o dado sabe: default plausível no lugar de desconhecido, progresso falso, ação ativa sem objeto (§6a3)
 - [ ] movimento ou estado aprovado sem a prova da linha correspondente em §6a
 
 Estas rejeições são profile da casa, não lei universal: em trabalho pra outra marca, o brand context do cliente substitui o taste, a barra de craft e o pixel perfect 1 permanecem.

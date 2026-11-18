@@ -43,6 +43,10 @@ Transcrição, OCR, extração, ranking, saída de LLM, layout em vários tamanh
 
 Entrada de dicionário, `if` para o valor reportado ou retry cego são remendo: só como contenção declarada, removida quando o estrutural entra.
 
+## Trabalho assíncrono: leitura parcial
+
+Future, task ou promise cancelado ou com exceção também conta como "terminado". Leitura parcial de trabalho assíncrono (juntar o que já ficou pronto, mostrar progresso) filtra cancelado e erro antes de ler o resultado; ler `result()` de um cancelado lança e derruba quem chamou. Teste: cancelar um item no meio e conferir que o resto segue.
+
 ## Fase 4 · Corrigir
 
 1. Escrever a regressão que falha pelo defeito. Ver falhar.

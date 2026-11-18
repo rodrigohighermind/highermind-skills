@@ -214,6 +214,23 @@ Feature LLM sem eval é opinião. O eval é a spec da feature: nasce **antes** d
 - Preferir checagem determinística (schema, valor extraído, tool chamada, campo presente). Juiz LLM só para o que é julgamento, com rubrica escrita e calibrado contra rótulo humano numa amostra antes de confiar.
 - Segmentar o score por capacidade (extração, cálculo, recusa, tool use), não só a média.
 - Threshold combinado antes de rodar, não depois de ver o número.
+- **Qualidade contra uma referência** (produto concorrente, versão anterior): juízes cegos de famílias diferentes (por exemplo Claude e Codex pela CLI), ordem A/B sorteada por caso, rubrica com nota por eixo **e** lista de erros concretos citando o trecho da fonte. A nota diz quem ganhou; a lista de erros é o que vira correção.
+- **O juiz recebe o mesmo contexto que o gerador** (data do evento, participantes, documento de origem). Contexto assimétrico gera sinal falso nos dois sentidos: o juiz pune como invenção o que o gerador resolveu certo, ou aprova o que não tinha como checar.
+
+**Fidelidade de resumo e extração é classe, não caso.** Regras explícitas no prompt, provadas no conjunto:
+- data relativa ("amanhã", "semana que vem") resolvida pela data do evento, nunca pela de hoje;
+- número como foi dito, sem conta que ninguém fez;
+- dono só de quem assumiu; senão, "sem dono definido";
+- proposta não é decisão;
+- vale a versão final do que foi corrigido depois na mesma fonte;
+- uma pessoa, um nome, pela lista de participantes.
+A prova é varrer o conjunto inteiro pela classe (por exemplo, variantes de nome da mesma pessoa em todas as atas), não reler o caso reportado.
+
+**Resumo de fonte longa cita a fonte, e a citação é verificada por código.**
+- Cada afirmação aponta para a âncora real de origem (carimbo de tempo, página, id do trecho, linha do documento). Só pedir citação quando a fonte tem âncoras reais; sem âncora, sem citação, e isso fica dito.
+- **Existência por código:** um verificador determinístico remove ou marca toda citação que não existe na fonte. Citação nunca leva ao nada.
+- **Suporte por amostragem:** que o trecho citado sustenta a afirmação se confere por amostra humana ou juiz cego, com o número da amostra na evidência.
+- **A citação é interface, não rodapé:** clicar leva ao trecho de origem. Em domínio de alto risco (saúde, jurídico, financeiro), afirmação sem citação verificável não é exibida como fato.
 
 **Usar**
 

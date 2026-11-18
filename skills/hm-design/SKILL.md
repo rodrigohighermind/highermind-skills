@@ -15,6 +15,8 @@ Transformar a tese do produto em experiência compreensível, distinta e impleme
 
 **Lei de processo: defeito que o dono do produto acha é falha do processo.** Corrigir e, no mesmo trabalho, adicionar a checagem que o teria pegado. Clone ou referência se mede antes de construir (geometria em pt, peso, cor, a partir de captura em 2x) e se prova com régua de paridade automática e depois lado a lado no olho ([review §2b](playbooks/review.md)). Número de olho não existe.
 
+**Lei da honestidade: a interface nunca afirma mais do que o dado sabe.** Valor estimado ou desconhecido tem estado próprio no modelo e aparência própria na tela, nunca um default plausível; progresso distingue esperando, trabalhando (com quanto falta) e pronto. Revisar com dado e volume reais ([review §6a3](playbooks/review.md)).
+
 1. Se o HM Orbit não está no contexto, ler [references/orbit.md](references/orbit.md).
 2. Ler o profile da casa em [references/profile.md](references/profile.md). Brief do Owner vence o profile; profile vence default de IA.
 3. Ler o real antes de propor: rotas, componentes, tokens, screenshots e o design system existente. Com DS ou referência na mão, copiar o uso exato, nunca inventar wrapper.
