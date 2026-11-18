@@ -1,0 +1,81 @@
+# Council members. Copy to $XDG_CONFIG_HOME/council/members.toml (or point COUNCIL_CONFIG at it) and edit.
+# Without a config file, these same members are the built-in defaults.
+#
+# Contract of a member
+#   name        unique id
+#   lineage     model family; two members of the same lineage are NOT independent opinions
+#   policy      where data goes: "subscription" (vendor CLI under your plan), "api" (third-party paid API),
+#               "local" (never leaves the machine). Drives the sensitivity rules.
+#   enabled_env optional: member is on only when this env var is "1" (paid members should always have one)
+#   requires    optional: env vars that must be set (keys), and/or commands that must be on PATH
+#   kind = "cli": command = argv list. Placeholders: {system}, {prompt}, {max_tokens}.
+#                 Runs in an empty temp dir; strip_env removes variables from its environment.
+#   kind = "http": url, headers, body (any TOML table/array; placeholders replaced inside strings),
+#                 text = dotted path to the answer ("*" joins a list), optional usage paths and price.
+#                 "${VAR}" in url/headers is read from the environment at call time (never logged).
+#   price       [usd per 1M input tokens, usd per 1M output tokens incl. reasoning]: used to RESERVE worst case
+#   cap_usd     hard ceiling for this member across runs (ledger); 0 = no paid calls allowed
+#   cost_path / cost_scale  optional: exact cost reported by the provider (value * scale = USD)
+
+[[member]]
+name = "claude"
+lineage = "anthropic"
+policy = "subscription"
+kind = "cli"
+requires = { commands = ["claude"] }
+strip_env = ["ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GEMINI_API_KEY", "XAI_API_KEY"]
+command = ["claude", "-p", "--model", "opus", "--tools", "", "--strict-mcp-config", "--disable-slash-commands",
+           "--no-session-persistence", "--setting-sources", "", "--system-prompt", "{system}", "{prompt}"]
+
+[[member]]
+name = "codex"
+lineage = "openai"
+policy = "subscription"
+kind = "cli"
+requires = { commands = ["codex"] }
+strip_env = ["ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GEMINI_API_KEY", "XAI_API_KEY"]
+command = ["codex", "exec", "--skip-git-repo-check", "--sandbox", "read-only", "{system}\n\n{prompt}"]
+
+[[member]]
+name = "gemini"
+lineage = "google"
+policy = "api"
+kind = "http"
+enabled_env = "COUNCIL_ENABLE_GEMINI"
+requires = { env = ["GEMINI_API_KEY"] }
+url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent"
+headers = { "x-goog-api-key" = "${GEMINI_API_KEY}" }
+body = { systemInstruction = { parts = [{ text = "{system}" }] }, contents = [{ role = "user", parts = [{ text = "{prompt}" }] }], generationConfig = { maxOutputTokens = "{max_tokens}" } }
+text = "candidates.0.content.parts.*.text"
+usage_in = "usageMetadata.promptTokenCount"
+usage_out = ["usageMetadata.candidatesTokenCount", "usageMetadata.thoughtsTokenCount"]
+price = [2.0, 12.0]
+cap_usd = 1.0
+
+[[member]]
+name = "grok"
+lineage = "xai"
+policy = "api"
+kind = "http"
+enabled_env = "COUNCIL_ENABLE_GROK"
+requires = { env = ["XAI_API_KEY"] }
+url = "https://api.x.ai/v1/chat/completions"
+headers = { Authorization = "Bearer ${XAI_API_KEY}" }
+body = { model = "grok-4.7", max_tokens = "{max_tokens}", messages = [{ role = "system", content = "{system}" }, { role = "user", content = "{prompt}" }] }
+text = "choices.0.message.content"
+usage_in = "usage.prompt_tokens"
+usage_out = ["usage.completion_tokens"]
+cost_path = "usage.cost_in_usd_ticks"
+cost_scale = 1e-10
+price = [3.0, 15.0]
+cap_usd = 1.0
+
+[[member]]
+name = "local"
+lineage = "local"
+policy = "local"
+kind = "http"
+enabled_env = "COUNCIL_ENABLE_LOCAL"
+url = "http://127.0.0.1:11434/api/chat"
+body = { model = "qwen2.5:7b", stream = false, format = "json", messages = [{ role = "system", content = "{system}" }, { role = "user", content = "{prompt}" }] }
+text = "message.content"

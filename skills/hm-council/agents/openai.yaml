@@ -1,0 +1,4 @@
+interface:
+  display_name: "HM Council"
+  short_description: "Conselho de modelos para decisões difíceis, com evidência"
+  default_prompt: "Use $hm-council para levar esta decisão a um conselho de modelos e voltar com o que medir."

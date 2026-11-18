@@ -33,7 +33,7 @@ DOMAIN_TO_SKILL = {
     "product": "hm-product",
 }
 GENERATED_REFERENCES = ("orbit.md", "profile.md", "incidents.md")
-IGNORED = {".DS_Store", "__pycache__"}
+IGNORED = {".DS_Store", "__pycache__", ".ruff_cache", ".mypy_cache", ".venv"}
 
 
 @dataclass(frozen=True)

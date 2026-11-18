@@ -3,13 +3,14 @@
 Leis de todo trabalho de software sob o HM Orbit.
 Precedência: pedido direto do Owner > `CLAUDE.md`/`AGENTS.md` do projeto > HM Orbit > default do modelo. Arquivo de projeto especializa e endurece, mas não rebaixa os mínimos de evidência, segurança e dados. Só o Owner rebaixa um mínimo, de forma expressa e na sessão; urgência não é dispensa.
 
-## Três portas
+## Quatro portas
 
 | Trabalho | Skill |
 |---|---|
 | Código, arquitetura, bug, teste, review, deploy, operação, segurança, LLM, CLI, dados (schema, migration, RLS, backup, métrica, experimento) | `hm-engineering` |
 | Tela, fluxo, design system, tipografia, motion, acessibilidade, review visual | `hm-design` |
 | O que construir e por quê, hipótese, spec, prioridade, roadmap, pricing, growth | `hm-product` |
+| Decisão de uma via, diagnóstico travado ou segunda opinião: vários modelos às cegas, com o que medir antes de decidir | `hm-council` |
 
 Carregar a skill antes de agir no trabalho dela. Trabalho transversal tem um dono primário; os outros consomem.
 

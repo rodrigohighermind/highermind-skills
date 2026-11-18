@@ -12,7 +12,7 @@
 
 </div>
 
-### Três skills para Claude Code e Codex construírem produto de tecnologia no nível mais alto: engenharia que prova o que entrega, design que vê antes de aprovar, produto que decide.
+### Quatro skills para Claude Code e Codex construírem produto de tecnologia no nível mais alto: engenharia que prova o que entrega, design que vê antes de aprovar, produto que decide e um conselho de modelos para a decisão difícil.
 
 <p align="center">
 <picture>
@@ -33,7 +33,8 @@
 - **Dados sagrados como barreira.** Um guard pede confirmação antes de `rm -rf`, `reset --hard`, `push --force`, `DROP`, `DELETE` sem `WHERE`, inclusive escondidos em `bash -c` ou heredoc.
 - **Evidência executável.** `hm_gate` roda typecheck, lint, testes, smoke, RLS e custo; `floor_guard` reprova o diff que apaga teste ou afrouxa a barra.
 - **Zero API paga.** Ferramenta pessoal usa a CLI da assinatura; a skill impede o agente de construir cobrança silenciosa por API.
-- **Leve no contexto.** Três portas curtas; a profundidade (debug, review, security, api, launch...) só carrega quando o momento pede.
+- **Conselho de modelos.** Decisão difícil de desfazer vai a vários modelos às cegas e volta com o que concordam, o que só um viu, onde conflitam e o que medir antes de decidir. Plugue os modelos que quiser.
+- **Leve no contexto.** Quatro portas curtas; a profundidade (debug, review, security, api, launch...) só carrega quando o momento pede.
 - **Instalação transacional e reversível**, com diagnóstico local: `orbit_status` diz OK, ATENÇÃO ou PROBLEMA.
 
 ## Instalar
@@ -79,7 +80,7 @@ Comportamentos reais observados no benchmark, no mesmo pedido, com o mesmo model
 
 ## Benchmark
 
-Doze cenários de pressão, um por lei crítica. Cada um rodou em três condições: **com o Orbit**, com uma **instrução genérica** ("seja cuidadoso, verifique seu trabalho") e **sem nada**. Três modelos: Claude Sonnet, Claude Haiku e Codex.
+Doze cenários de pressão, um por lei crítica, cobrindo engenharia, design e produto. O conselho tem o próprio método de avaliação (`skills/hm-council/playbooks/eval.md`) e ainda não entra neste placar. Cada um rodou em três condições: **com o Orbit**, com uma **instrução genérica** ("seja cuidadoso, verifique seu trabalho") e **sem nada**. Três modelos: Claude Sonnet, Claude Haiku e Codex.
 
 | Cenário | Com Orbit | Genérico | Sem nada |
 |---|:---:|:---:|:---:|
@@ -112,9 +113,11 @@ flowchart TD
     E -- código, dados, infra --> F[hm-engineering]
     E -- tela, fluxo, UI --> G[hm-design]
     E -- decisão, spec, preço --> H[hm-product]
+    E -- decisão de uma via --> Q[hm-council]
     F --> I[Playbook do momento]
     G --> I
     H --> I
+    Q --> I
     I --> J[Agir]
     J --> K{Destrutivo?}
     K -- sim --> L[Guard pede confirmação]
@@ -123,7 +126,9 @@ flowchart TD
     M --> N([Fechamento: STATUS e PROVA])
 ```
 
-**Três portas, profundidade sob demanda.** Cada skill tem um `SKILL.md` curto que só roteia: identifica o momento do trabalho e carrega o playbook certo (`build`, `debug`, `review`, `security`, `api`, `ship`, `launch`, `direction`...). A profundidade só entra no contexto quando é necessária, então sobra contexto para o seu código.
+**Quatro portas, profundidade sob demanda.** Cada skill tem um `SKILL.md` curto que só roteia: identifica o momento do trabalho e carrega o playbook certo (`build`, `debug`, `review`, `security`, `api`, `ship`, `launch`, `direction`...). A profundidade só entra no contexto quando é necessária, então sobra contexto para o seu código.
+
+**Conselho, não voto.** O `hm-council` manda o mesmo briefing a vários modelos, independentes e às cegas, faz uma revisão cruzada anônima e devolve uma síntese que separa o medido da hipótese e lista o que medir antes de decidir. Não ranqueia nem faz média: o achado da minoria nunca é descartado. Membros são plugáveis por arquivo TOML (comando de CLI ou endpoint HTTP), sem mexer no código. Claude e Codex entram pela CLI da assinatura; API paga é opt-in por variável de ambiente, com teto duro de custo; modelo local entra com `--local`. O briefing passa por redação automática de segredo e dado pessoal, e o que for classificado como confidencial nunca vai para API de terceiro. Com um modelo só, roda em modo degradado e declara a diversidade real.
 
 **Kernel só onde importa.** O kernel entra automaticamente quando a sessão abre num repo de software, ou na primeira vez que ela entra num. Conversa sobre e-mail, finanças ou mídia fica limpa. `.orbit` liga em qualquer pasta; `.orbit-off` desliga.
 
@@ -159,6 +164,7 @@ Fale do jeito que você já fala. O Orbit reconhece o momento:
 | "Cria a tabela de faturas no Supabase." | `hm-engineering` · `data-integrity`: RLS e policy na mesma migration, teste de acesso negado. |
 | "Revisa essa tela antes de subir." | `hm-design` · `review`: renderiza, screenshots em desktop e mobile, console, acessibilidade. |
 | "Vale a pena construir esse feed social?" | `hm-product` · `direction`: recomendação, contra-argumento, critério que mudaria a decisão. |
+| "Postgres ou SQLite para isso? Pede outras opiniões." | `hm-council`: briefing com a evidência, membros às cegas, conflitos com o teste que resolve cada um, o que medir. |
 | "Vamos lançar isso semana que vem." | `hm-product` · `launch`: contrato de lançamento, kill criteria, rollback em menos de 5 minutos. |
 
 **Evidência que você pode rodar:**
@@ -210,9 +216,9 @@ Para endurecer num projeto específico, escreva no `CLAUDE.md` ou `AGENTS.md` de
 
 ## Perguntas frequentes
 
-**Funciona com Codex?** Sim. As três skills são instaladas no Codex também. Os hooks (kernel automático e guard) são do Claude Code.
+**Funciona com Codex?** Sim. As quatro skills são instaladas no Codex também. Os hooks (kernel automático e guard) são do Claude Code.
 
-**Gasta crédito de API?** Não. Nada aqui chama API paga. E a lei 11 impede que o agente construa ferramenta pessoal cobrando por API sem você perceber.
+**Gasta crédito de API?** Não por padrão. Engenharia, design e produto nunca chamam API paga, e a lei 11 impede que o agente construa ferramenta pessoal cobrando por API sem você perceber. O conselho só usa API paga se você ligar um membro por variável de ambiente, e cada provedor tem teto duro de custo e ledger local.
 
 **O guard vai me travar?** Ele só intervém em comando destrutivo, e intervir significa pedir confirmação, não bloquear. O que ele nega de vez é o irreversível de verdade. Para desligar numa sessão: `HM_ORBIT_GUARD=off`.
 
@@ -230,7 +236,7 @@ Pull requests nos playbooks são bem-vindos quando trazem um caso concreto. Mant
 
 ## In English
 
-**HM Skills Orbit** is a set of three skills (engineering, design, product) plus a twelve-law kernel for Claude Code and Codex. It replaces vague advice with specific laws backed by executable evidence: no "done" without a command run now, fix the mechanism instead of the reported case, backup before destroying data, render before approving UI, subscription CLI instead of paid API, decide instead of listing pros and cons. In a 12-scenario pressure benchmark across Claude Sonnet, Claude Haiku and Codex, agents with Orbit obeyed **36/36** laws, versus 18/36 with a generic "be careful" instruction and 22/36 with nothing. Install: `python3 scripts/install.py --apply`. Content is in Portuguese; the agent answers in the user's language.
+**HM Skills Orbit** is a set of four skills (engineering, design, product, and a multi-model council for hard decisions) plus a twelve-law kernel for Claude Code and Codex. It replaces vague advice with specific laws backed by executable evidence: no "done" without a command run now, fix the mechanism instead of the reported case, backup before destroying data, render before approving UI, subscription CLI instead of paid API, decide instead of listing pros and cons. In a 12-scenario pressure benchmark across Claude Sonnet, Claude Haiku and Codex, agents with Orbit obeyed **36/36** laws, versus 18/36 with a generic "be careful" instruction and 22/36 with nothing. Install: `python3 scripts/install.py --apply`. Content is in Portuguese; the agent answers in the user's language.
 
 ## Licença
 
