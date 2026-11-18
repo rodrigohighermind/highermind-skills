@@ -1,0 +1,17 @@
+{
+  "name": "hm-skills-orbit",
+  "version": "4.0.0",
+  "skills": [
+    "hm-design",
+    "hm-engineering",
+    "hm-product"
+  ],
+  "skill_line_budget": 150,
+  "runtime_targets": [
+    "claude-code",
+    "codex"
+  ],
+  "forbidden_characters": [
+    "—"
+  ]
+}

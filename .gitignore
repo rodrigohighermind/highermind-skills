@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.DS_Store
+.mypy_cache/
+.ruff_cache/
+.venv/
+dist/
+dist.tmp/
+evals/runs/
+telemetry.jsonl
+.orbit/
+.sessions/

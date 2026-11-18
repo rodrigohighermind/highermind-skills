@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="420" viewBox="0 0 960 420" role="img" aria-label="Benchmark: com HM Orbit o agente obedece 36 de 36 leis sob pressão; com instrução genérica, 18; sem nada, 22.">
+<rect width="960" height="420" rx="18" fill="#0B0D10"/>
+<text x="40" y="58" font-family="Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" letter-spacing="1.5" fill="#7A8494">LEIS OBEDECIDAS SOB PRESSÃO · 12 CENÁRIOS × 3 MODELOS</text>
+<text x="40" y="120" font-family="Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#E8FF5A">100%</text>
+<rect x="40" y="136" width="10" height="10" rx="2" fill="#E8FF5A"/>
+<text x="56" y="145" font-family="Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" fill="#AEB5C0">Com HM Orbit</text>
+<text x="40" y="166" font-family="Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#6B7380">36 de 36</text>
+<text x="190" y="120" font-family="Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#E6E9EE">50%</text>
+<rect x="190" y="136" width="10" height="10" rx="2" fill="#7A8494"/>
+<text x="206" y="145" font-family="Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" fill="#AEB5C0">Instrução genérica</text>
+<text x="190" y="166" font-family="Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#6B7380">18 de 36</text>
+<text x="340" y="120" font-family="Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#E6E9EE">61%</text>
+<rect x="340" y="136" width="10" height="10" rx="2" fill="#3A4250"/>
+<text x="356" y="145" font-family="Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" fill="#AEB5C0">Sem nada</text>
+<text x="340" y="166" font-family="Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#6B7380">22 de 36</text>
+<text x="40" y="220" font-family="Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" fill="#E6E9EE">"Seja cuidadoso" não ajuda.</text>
+<text x="40" y="242" font-family="Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" fill="#AEB5C0">Lei específica, com prova executável, sim.</text>
+<text x="40" y="384" font-family="Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#6B7380">Cada cenário verificado pelo que o agente fez: arquivos, banco real,</text>
+<text x="40" y="402" font-family="Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#6B7380">código executado, tela renderizada. Não pelo que ele disse.</text>
+<text x="520" y="92" font-family="Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#E6E9EE">Sonnet</text>
+<rect x="520" y="104" width="400" height="12" rx="3" fill="#161A20"/>
+<rect x="520" y="104" width="400.0" height="12" rx="3" fill="#E8FF5A"/>
+<text x="930" y="115" font-family="Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#E8FF5A">12/12</text>
+<rect x="520" y="124" width="400" height="12" rx="3" fill="#161A20"/>
+<rect x="520" y="124" width="133.3" height="12" rx="3" fill="#7A8494"/>
+<text x="930" y="135" font-family="Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#AEB5C0">4/12</text>
+<rect x="520" y="144" width="400" height="12" rx="3" fill="#161A20"/>
+<rect x="520" y="144" width="233.3" height="12" rx="3" fill="#3A4250"/>
+<text x="930" y="155" font-family="Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#AEB5C0">7/12</text>
+<text x="520" y="184" font-family="Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#E6E9EE">Haiku</text>
+<rect x="520" y="196" width="400" height="12" rx="3" fill="#161A20"/>
+<rect x="520" y="196" width="400.0" height="12" rx="3" fill="#E8FF5A"/>
+<text x="930" y="207" font-family="Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#E8FF5A">12/12</text>
+<rect x="520" y="216" width="400" height="12" rx="3" fill="#161A20"/>
+<rect x="520" y="216" width="200.0" height="12" rx="3" fill="#7A8494"/>
+<text x="930" y="227" font-family="Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#AEB5C0">6/12</text>
+<rect x="520" y="236" width="400" height="12" rx="3" fill="#161A20"/>
+<rect x="520" y="236" width="200.0" height="12" rx="3" fill="#3A4250"/>
+<text x="930" y="247" font-family="Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#AEB5C0">6/12</text>
+<text x="520" y="276" font-family="Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#E6E9EE">Codex</text>
+<rect x="520" y="288" width="400" height="12" rx="3" fill="#161A20"/>
+<rect x="520" y="288" width="400.0" height="12" rx="3" fill="#E8FF5A"/>
+<text x="930" y="299" font-family="Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#E8FF5A">12/12</text>
+<rect x="520" y="308" width="400" height="12" rx="3" fill="#161A20"/>
+<rect x="520" y="308" width="266.7" height="12" rx="3" fill="#7A8494"/>
+<text x="930" y="319" font-family="Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#AEB5C0">8/12</text>
+<rect x="520" y="328" width="400" height="12" rx="3" fill="#161A20"/>
+<rect x="520" y="328" width="300.0" height="12" rx="3" fill="#3A4250"/>
+<text x="930" y="339" font-family="Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#AEB5C0">9/12</text>
+</svg>

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="1200" height="430" viewBox="0 0 1200 430" role="img" aria-label="Mesmo pedido, sem e com HM Orbit: sem, o agente remenda o caso; com, corrige o mecanismo e prova em dez casos.">
+<rect x="0.5" y="0.5" width="1199" height="429" rx="20" fill="#0B0D10" stroke="none"/>
+<text x="40" y="52" font-family="Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" letter-spacing="1.5" fill="#6B7380">MESMO PEDIDO · "O SLUG DE RIBEIRÃO PRETO SAIU ERRADO. CONSERTA RAPIDINHO."</text>
+<rect x="40" y="78" width="550" height="320" rx="12" fill="#12151A" stroke="#232831"/>
+<circle cx="62" cy="100" r="5" fill="#232831"/>
+<circle cx="78" cy="100" r="5" fill="#232831"/>
+<circle cx="94" cy="100" r="5" fill="#232831"/>
+<text x="570" y="105" text-anchor="end" font-family="Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#6B7380">Sem Orbit</text>
+<line x1="40" y1="122" x2="590" y2="122" stroke="#232831"/>
+<text x="64" y="154" font-family="JetBrains Mono, SFMono-Regular, Menlo, Consolas, monospace" font-size="14.5" fill="#6B7380">Edit slug.py</text>
+<text x="64" y="181" font-family="JetBrains Mono, SFMono-Regular, Menlo, Consolas, monospace" font-size="14.5" fill="#7EE2A8">+   "Ribeirão Preto": "ribeirao-preto",</text>
+<text x="64" y="235" font-family="JetBrains Mono, SFMono-Regular, Menlo, Consolas, monospace" font-size="14.5" fill="#F2F4F7">Pronto, corrigido.</text>
+<text x="64" y="289" font-family="JetBrains Mono, SFMono-Regular, Menlo, Consolas, monospace" font-size="14.5" fill="#6B7380">depois, em produção:</text>
+<text x="64" y="316" font-family="JetBrains Mono, SFMono-Regular, Menlo, Consolas, monospace" font-size="14.5" fill="#F28B82">Florianópolis  -&gt;  florianpolis</text>
+<text x="64" y="343" font-family="JetBrains Mono, SFMono-Regular, Menlo, Consolas, monospace" font-size="14.5" fill="#F28B82">Maceió         -&gt;  macei</text>
+<text x="64" y="370" font-family="JetBrains Mono, SFMono-Regular, Menlo, Consolas, monospace" font-size="14.5" fill="#F28B82">Goiânia        -&gt;  goinia</text>
+<rect x="610" y="78" width="550" height="320" rx="12" fill="#12151A" stroke="#232831"/>
+<circle cx="632" cy="100" r="5" fill="#232831"/>
+<circle cx="648" cy="100" r="5" fill="#232831"/>
+<circle cx="664" cy="100" r="5" fill="#232831"/>
+<text x="1140" y="105" text-anchor="end" font-family="Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#E8FF5A">Com HM Orbit</text>
+<line x1="610" y1="122" x2="1160" y2="122" stroke="#232831"/>
+<text x="634" y="154" font-family="JetBrains Mono, SFMono-Regular, Menlo, Consolas, monospace" font-size="14.5" fill="#F2F4F7">Falha de classe: o encode ascii descarta acento.</text>
+<text x="634" y="181" font-family="JetBrains Mono, SFMono-Regular, Menlo, Consolas, monospace" font-size="14.5" fill="#6B7380">Edit slug.py</text>
+<text x="634" y="208" font-family="JetBrains Mono, SFMono-Regular, Menlo, Consolas, monospace" font-size="14.5" fill="#F28B82">-   name.encode("ascii", "ignore")</text>
+<text x="634" y="235" font-family="JetBrains Mono, SFMono-Regular, Menlo, Consolas, monospace" font-size="14.5" fill="#7EE2A8">+   normalize("NFKD", name).encode("ascii", "ignore")</text>
+<text x="634" y="289" font-family="JetBrains Mono, SFMono-Regular, Menlo, Consolas, monospace" font-size="14.5" fill="#F2F4F7">Provado em 10 cidades que ninguém reportou: 10/10.</text>
+<text x="634" y="316" font-family="JetBrains Mono, SFMono-Regular, Menlo, Consolas, monospace" font-size="14.5" fill="#F2F4F7">Dicionário de exceções: não cresceu.</text>
+<text x="634" y="370" font-family="JetBrains Mono, SFMono-Regular, Menlo, Consolas, monospace" font-size="14.5" font-weight="700" fill="#E8FF5A">STATUS PASS · PROVA python3 -m unittest, 3 ok</text>
+<text x="40" y="416" font-family="Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#6B7380">Ilustração do comportamento medido no cenário "causa, não caso" do benchmark.</text>
+</svg>
