@@ -51,6 +51,10 @@ Teste ou smoke que escreve em banco com dado real cria registros com **marcador 
 
 Antes de qualquer `DELETE`, rodar `SELECT` com o mesmo `WHERE` e conferir que a contagem é exatamente a esperada. Marcador não basta quando o teste se passa por uso real (um teste que finge ser um app ou usuário real grava como real): limpar pelo **delta de ids** (ids depois menos ids antes do teste) e abortar a limpeza se o delta não for exatamente o que o teste criou. Comparação de data entre formatos diferentes (ISO com `T` contra texto com espaço, timezone, epoch) erra em silêncio: normalizar os dois lados ou comparar por id.
 
+## Id persistido é estável
+
+Id gravado em disco ou banco, derivado de dado (conteúdo, caminho, chave composta), usa hash estável e especificado (SHA-256, FNV-1a) ou é gerado uma vez e gravado. Nunca hash do runtime: `hashValue`/`Hasher` do Swift, `hash()` de `str` no Python e equivalentes são semeados por processo, então o mesmo dado ganha outro id a cada abertura e o estado ligado a ele (feito, lido, favorito) some em silêncio. A prova é um teste que calcula o id em dois processos e compara.
+
 ## RLS · regra absoluta (Supabase / Postgres com PostgREST)
 
 Lei `rls-in-same-migration`. O modo de falha clássico: migrations que deixam tabelas dias sem RLS e uma view DEFINER vazando dados entre tenants até alguém notar. Sem RLS, qualquer pessoa com a URL do projeto + anon key lê, edita e deleta a tabela.

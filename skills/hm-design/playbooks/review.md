@@ -99,6 +99,8 @@ Sem a prova da linha, o item é `NOT_VERIFIED`, nunca PASS. Screenshot parado s�
 
 Estado que só existe com permissão do sistema ou hardware (gravação ativa, câmera, localização) ganha gancho de QA: a interface aceita o estado injetado por variável de ambiente, alimentado por dados reais produzidos por outro processo. Assim o estado é revisado e capturado sem a permissão, e a prova de "estado forçado e visto" (§6a) vale para ele também.
 
+Proteção que impede a própria captura (janela excluída de compartilhamento de tela) fica desligada só no bundle de QA, por opção explícita, e ligada em todo o resto. A captura falhar no bundle normal é o teste de que a proteção vale.
+
 ## 6a3. Honestidade do dado
 
 Para cada campo exibido, perguntar: **de onde vem isso e qual a certeza?** Em produto onde o dado decide algo (saúde, dinheiro, prazo), dado errado na tela é pior que tela feia.

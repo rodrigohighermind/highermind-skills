@@ -232,6 +232,8 @@ Secret no código: CRÍTICO. Secret no git history: CRÍTICO + rotação imediat
 - Mass operations: endpoint de batch sem limite? Export de tudo?
 - Referral/promo: código reutilizável? Auto-referral?
 
+- Privacidade declarada (janela excluída de compartilhamento de tela, dado que não sai do aparelho, log sem PII): provar por um teste que **falha quando a proteção vale**. Exemplo: janela com exclusão de captura faz a captura daquela janela falhar; o teste espera a falha. Proteção sem teste é promessa.
+
 Método: mapear fluxos críticos; pra cada um, pular passo, repetir passo, inverter ordem, disparar em paralelo, injetar extremos, trocar role.
 
 ## 7. Criptografia (L2+)

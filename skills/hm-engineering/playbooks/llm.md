@@ -196,7 +196,16 @@ await runAgentLoop({
 })
 ```
 
+- Resultado de tool pode chegar em vários blocos de conteúdo (um por item de lista). Cliente e teste leem todos os blocos; ler só o primeiro gera falso FAIL ou dado truncado. Antes de escrever contra um SDK de MCP, conferir a versão instalada: nomes de classe e formato de resultado mudam entre majors.
 - Logging de cada tool call pra auditoria. Erro em uma tool não derruba o loop inteiro.
+
+### Transformação que não pode trocar palavra
+
+Formatar, pontuar, quebrar em lista ou estruturar texto que é do usuário (ditado, transcrição, dado clínico, documento legal): o modelo **não escreve o texto de saída**.
+- **Classificar:** a decisão (vira lista? é título? quebra aqui?) é sim/não ou escolha curta, lida do logit ou de saída restrita, com o prefixo few-shot em cache.
+- **Escolher entre candidatos:** o código gera as variantes com as **mesmas palavras** e o modelo escolhe por verossimilhança. Decisões fatoradas em janelas curtas, não o texto inteiro de uma vez.
+- **Verificador de alinhamento:** compara entrada e saída palavra a palavra; só some ou muda o que a regra declarou (por exemplo, hesitação). Qualquer outra diferença descarta a transformação e devolve o original.
+Texto livre de modelo pequeno troca palavra em silêncio, e o verificador é o que transforma isso em erro visível. Vale para resumo em domínio de alto risco: o resumo cita, nunca reescreve o dado.
 
 ## 4. Evals
 
@@ -229,6 +238,8 @@ A prova é varrer o conjunto inteiro pela classe (por exemplo, variantes de nome
 **Resumo de fonte longa cita a fonte, e a citação é verificada por código.**
 - Cada afirmação aponta para a âncora real de origem (carimbo de tempo, página, id do trecho, linha do documento). Só pedir citação quando a fonte tem âncoras reais; sem âncora, sem citação, e isso fica dito.
 - **Existência por código:** um verificador determinístico remove ou marca toda citação que não existe na fonte. Citação nunca leva ao nada.
+- **Várias âncoras numa citação** (`[1·30:43, 1·43:20]`) são normalizadas em citações individuais antes da verificação; cada uma é conferida sozinha e a que aponta para o nada sai, sem derrubar as outras.
+- O prompt pede o que **não** foi encontrado na fonte ("diga o que não achou"), o que reduz invenção para preencher lacuna.
 - **Suporte por amostragem:** que o trecho citado sustenta a afirmação se confere por amostra humana ou juiz cego, com o número da amostra na evidência.
 - **A citação é interface, não rodapé:** clicar leva ao trecho de origem. Em domínio de alto risco (saúde, jurídico, financeiro), afirmação sem citação verificável não é exibida como fato.
 

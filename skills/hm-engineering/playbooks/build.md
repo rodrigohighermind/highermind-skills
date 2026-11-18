@@ -70,6 +70,10 @@ Vale para qualquer produto com fila, job ou processamento longo.
 - **Simular tempo real quando o real não está disponível.** Sem permissão ou hardware (microfone, câmera, sensor), um produtor simulado reproduz exatamente o formato e a cadência do real (arquivo crescendo em tempo real, eventos no ritmo do dispositivo) e mede atraso, prioridade sob carga e tempo até o resultado final. O teste remove só o que criou, por id ou sufixo próprio, conferindo o conjunto de arquivos antes de apagar.
 - **Parse de formato externo é estrutural.** Importador de texto, log ou export de terceiro acha a estrutura (onde começa o corpo: primeiro carimbo de tempo, seção que nomeia o corpo) e é testado com amostras reais de cada fonte. Lista de palavras proibidas para filtrar cabeçalho é caso, não causa: o próximo cabeçalho tem a mesma forma do conteúdo.
 
+## 4c. Um pipeline, uma função
+
+Duas entradas para o mesmo resultado (ao vivo e reprocessar, import e edição, API e CLI) chamam **a mesma função** de pipeline, nunca cópias que divergem. O e2e exercita as duas entradas com o mesmo insumo e exige saída igual; foi assim que um reprocessamento sem uma etapa de formatação apareceu.
+
 ## 5. Fechamento
 
 - `floor_guard.py` mede desde o SHA do início da sessão (o hook grava em `.git/orbit-base`); sem hook, anotar `git rev-parse HEAD` antes da primeira mudança e passar `--since`.
