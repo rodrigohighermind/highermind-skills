@@ -61,6 +61,15 @@ O revisor recebe o diff e a fatia, não a conclusão do implementador. Problema 
 
 Paralelismo só para fatias que não compartilham arquivo nem estado. Na dúvida, sequencial.
 
+## 4b. Trabalho em segundo plano
+
+Vale para qualquer produto com fila, job ou processamento longo.
+
+- **Lote nunca bloqueia o que é ao vivo.** Filas separadas por prioridade (ao vivo, interativo, lote). O lote cede a cada unidade de trabalho, nunca segura o recurso pela tarefa inteira. A prioridade se prova sob carga: com o lote cheio, a tarefa ao vivo começa no tempo prometido.
+- **Job longo tem checkpoint e retomada.** Progresso persistido por unidade; reinício (deploy, install, crash) retoma do último checkpoint, não do zero. Matar o processo no meio do job e conferir a retomada faz parte do aceite.
+- **Simular tempo real quando o real não está disponível.** Sem permissão ou hardware (microfone, câmera, sensor), um produtor simulado reproduz exatamente o formato e a cadência do real (arquivo crescendo em tempo real, eventos no ritmo do dispositivo) e mede atraso, prioridade sob carga e tempo até o resultado final. O teste remove só o que criou, por id ou sufixo próprio, conferindo o conjunto de arquivos antes de apagar.
+- **Parse de formato externo é estrutural.** Importador de texto, log ou export de terceiro acha a estrutura (onde começa o corpo: primeiro carimbo de tempo, seção que nomeia o corpo) e é testado com amostras reais de cada fonte. Lista de palavras proibidas para filtrar cabeçalho é caso, não causa: o próximo cabeçalho tem a mesma forma do conteúdo.
+
 ## 5. Fechamento
 
 - `floor_guard.py` mede desde o SHA do início da sessão (o hook grava em `.git/orbit-base`); sem hook, anotar `git rev-parse HEAD` antes da primeira mudança e passar `--since`.

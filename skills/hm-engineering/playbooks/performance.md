@@ -60,6 +60,10 @@ Anti-patterns:
 - Operação bloqueante no event loop; sync I/O em path quente.
 - I/O independente sequencial (usar `Promise.all` / `asyncio.gather`).
 
+## Latência percebida
+
+Interface "ao vivo" (transcrição, streaming, colaboração, progresso) mede o **atraso que a pessoa vê**, não o tempo de processamento. Atraso visível = do evento real até aparecer na tela. Rascunho parcial mostrado cedo, com o resultado final vindo da unidade completa, corta o atraso visível sem perder precisão. Métrica de aceite: mediana e p95 do atraso visível, comparados com a referência do produto.
+
 ## Database
 
 - Todo FK indexado; WHERE frequente = composite index. `EXPLAIN ANALYZE` prova, opinião não.

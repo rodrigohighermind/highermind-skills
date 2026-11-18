@@ -190,5 +190,6 @@ Após o init, o Owner consegue:
 5. Confiar que está seguro desde o commit zero (`.dockerignore`, multi-stage, non-root, secrets fora).
 6. Encontrar `AGENTS.md` + `MEMORY.md` na raiz prontos pra acumular contexto.
 7. Em Supabase: audit-rls + hook funcionando. Em Next: zero overlay de devtools.
+8. Com fila, job longo ou fluxo ao vivo: prioridade por fila, checkpoint e métrica de atraso visível desenhados desde o início ([build §4b](build.md), [performance · latência percebida](performance.md)).
 
 Fechar o init rodando o review de segurança L1 (`playbooks/security.md`) sobre a fundação.

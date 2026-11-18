@@ -92,6 +92,10 @@ Sem a prova da linha, o item é `NOT_VERIFIED`, nunca PASS. Screenshot parado s�
 
 **Achou um, procure os irmãos.** Defeito da classe encontrado num lugar é hipótese de que o mesmo mecanismo existe em outros: varrer o produto inteiro pelo mecanismo (a mesma transição, o mesmo componente, o mesmo padrão de carga) e corrigir na fonte compartilhada. Reportar só o caso pedido é corrigir o caso, não a causa.
 
+## 6a2. Estado que exige permissão ou hardware
+
+Estado que só existe com permissão do sistema ou hardware (gravação ativa, câmera, localização) ganha gancho de QA: a interface aceita o estado injetado por variável de ambiente, alimentado por dados reais produzidos por outro processo. Assim o estado é revisado e capturado sem a permissão, e a prova de "estado forçado e visto" (§6a) vale para ele também.
+
 ## 6b. Acessibilidade que costuma escapar (WCAG 2.2)
 
 Além de contraste, foco visível e teclado:
