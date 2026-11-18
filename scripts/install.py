@@ -36,6 +36,7 @@ from build import build, load_manifest
 
 MARKER = ".hm-skill-install.json"
 HOOK_MARKER = ".hm-orbit-install.json"
+TELEMETRY = "telemetry.jsonl"  # dado de uso, escrito pelos hooks: fora do hash e preservado na troca
 SUITE = "hm-skills-orbit"
 LEGACY_SUITE = "highermind-skills"
 HOOK_DIR = "hm-orbit"
@@ -112,7 +113,7 @@ def publish(staging: Path, target: Path, journal: Journal) -> None:
 
 def tree_digest(path: Path) -> str:
     digest = hashlib.sha256()
-    for file in sorted(p for p in path.rglob("*") if p.is_file() and p.name not in {MARKER, HOOK_MARKER, ".DS_Store"} and "__pycache__" not in p.parts):
+    for file in sorted(p for p in path.rglob("*") if p.is_file() and p.name not in {MARKER, HOOK_MARKER, ".DS_Store", TELEMETRY} and "__pycache__" not in p.parts):
         digest.update(str(file.relative_to(path)).encode())
         digest.update(file.read_bytes())
     return digest.hexdigest()
@@ -285,6 +286,9 @@ def apply(plan: Plan, dist: Path, version: str, stamp: str, on_failure: bool, jo
         shutil.move(str(hook_dir), str(destination))
         journal.moves.append((hook_dir, destination))
     if hook_staging is not None:
+        previous_log = backup_root / f"hook-{HOOK_DIR}" / TELEMETRY
+        if previous_log.is_file():
+            shutil.copy2(previous_log, hook_staging / TELEMETRY)
         publish(hook_staging, hook_dir, journal)
         hooks = settings.setdefault("hooks", {})
         assert isinstance(hooks, dict)  # garantido por load_settings
