@@ -57,7 +57,21 @@ def resolve(path: str, cwd: Path) -> str:
     return os.path.realpath(expanded if os.path.isabs(expanded) else cwd / expanded)
 
 
+TEMP_VARS: set[str] = set()
+MKTEMP_ASSIGN = re.compile(r"\b([A-Za-z_]\w*)=\$\(\s*mktemp\b[^)]*\)")
+
+
+def is_temp_var(path: str) -> bool:
+    """`rm -rf $X` onde X=$(mktemp ...) no mesmo comando é limpeza de pasta temporária criada ali."""
+    match = re.fullmatch(r"\$\{?([A-Za-z_]\w*)\}?(/.*)?", path)
+    if match is None:
+        return False
+    return match.group(1) in TEMP_VARS and ".." not in (match.group(2) or "")
+
+
 def is_disposable(path: str, cwd: Path) -> bool:
+    if is_temp_var(path):
+        return True
     if GLOB_OR_VAR.search(os.path.expanduser(path).replace("$HOME", "").replace("${HOME}", "")):
         return False
     resolved = resolve(path, cwd)
@@ -329,6 +343,9 @@ def strip_heredocs(command: str) -> tuple[str, list[str]]:
 
 
 def decide(command: str, cwd: Path, depth: int = 0) -> Verdict | None:
+    if depth == 0:
+        TEMP_VARS.clear()
+        TEMP_VARS.update(MKTEMP_ASSIGN.findall(command))
     command = command.replace("\\\n", " ")
     command, bodies = strip_heredocs(command)
     verdicts: list[Verdict] = []
