@@ -46,6 +46,7 @@ ON_FAILURE_MIN = (2, 1, 295)
 HOOKS: dict[str, tuple[str | None, str, bool]] = {
     "SessionStart": (None, "session_start.py", False),
     "PreToolUse": ("Bash|Write|Edit|MultiEdit|Skill", "guard_destructive.py", True),
+    "PostToolUse": ("Bash|Read|Edit|Write|MultiEdit", "session_start.py", False),
 }
 EXIT_OK, EXIT_ERROR, EXIT_CONFLICT = 0, 1, 3
 

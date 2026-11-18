@@ -125,9 +125,9 @@ flowchart TD
 
 **Três portas, profundidade sob demanda.** Cada skill tem um `SKILL.md` curto que só roteia: identifica o momento do trabalho e carrega o playbook certo (`build`, `debug`, `review`, `security`, `api`, `ship`, `launch`, `direction`...). A profundidade só entra no contexto quando é necessária, então sobra contexto para o seu código.
 
-**Kernel só onde importa.** O kernel entra automaticamente quando a sessão abre num repo de software. Conversa sobre e-mail, finanças ou mídia fica limpa. `.orbit` liga em qualquer pasta; `.orbit-off` desliga.
+**Kernel só onde importa.** O kernel entra automaticamente quando a sessão abre num repo de software, ou na primeira vez que ela entra num. Conversa sobre e-mail, finanças ou mídia fica limpa. `.orbit` liga em qualquer pasta; `.orbit-off` desliga.
 
-**Barreira, não só texto.** Um guard antes de cada comando pede confirmação para `rm -rf` fora do temporário, `reset --hard`, `push --force`, `DROP`, `TRUNCATE`, `DELETE` sem `WHERE` e sobrescrita de `.env` ou migration existente. Ele enxerga dentro de `bash -c`, `sudo`, `env`, `xargs`, `npx`, heredoc e substituição de comando. Nega só o irreversível de verdade, como `rm -rf ~` e formatar disco.
+**Barreira, não só texto.** Um guard antes de cada comando pede confirmação para `rm -rf` fora do temporário, `reset --hard`, `push --force`, `DROP`, `TRUNCATE`, `DELETE` sem `WHERE` ou por faixa de data e padrão, e sobrescrita de `.env` ou migration existente. Ele enxerga dentro de `bash -c`, `sudo`, `env`, `xargs`, `npx`, heredoc e substituição de comando. Nega só o irreversível de verdade, como `rm -rf ~` e formatar disco.
 
 ### As doze leis
 

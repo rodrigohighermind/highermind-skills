@@ -22,10 +22,27 @@ LLM_CLIENT_PATTERNS = (
 LLM_KEY_PATTERN = re.compile(r"\b(?:ANTHROPIC|OPENAI)_API_KEY\b")
 KEY_REMOVAL_PATTERNS = (
     re.compile(r"\b(?:os\.environ|env)\.pop\(\s*['\"](?:ANTHROPIC|OPENAI)_API_KEY['\"]"),
+    # filtro de exclusão: {k: v for k, v in env.items() if k != "...KEY"} ou "not in (...KEY...)"
+    re.compile(r"(?:!=|\bnot\s+in\b)\s*[\(\[\{]?\s*['\"](?:ANTHROPIC|OPENAI)_API_KEY['\"]"),
+    re.compile(r"\bdel\s+\w+\[\s*['\"](?:ANTHROPIC|OPENAI)_API_KEY['\"]\s*\]"),
+    re.compile(r"['\"](?:ANTHROPIC|OPENAI)_API_KEY['\"][^#\n]*\b(?:not\s+in|!=)\b"),
     re.compile(r"\b(?:unset|delete)\s+(?:process\.env\.)?(?:ANTHROPIC|OPENAI)_API_KEY\b"),
     re.compile(r"\bprocess\.env\.(?:ANTHROPIC|OPENAI)_API_KEY\s*=\s*(?:undefined|null)\b"),
 )
 QUALITY_ROLES = ("typecheck", "lint", "test", "smoke")
+SOFTWARE_MARKERS = ("pyproject.toml", "setup.py", "requirements.txt", "Package.swift", "Cargo.toml", "go.mod", "deno.json", "Gemfile", "composer.json", "pom.xml", "build.gradle", "build.gradle.kts", "mix.exs", "Makefile")
+
+
+def missing_quality_check(root: Path) -> Check:
+    """Repo de software sem comandos de qualidade declarados não é 'não aplicável': é não verificado."""
+    found = [marker for marker in SOFTWARE_MARKERS if (root / marker).exists() or any(root.glob(f"*/{marker}"))]
+    if found:
+        return Check(
+            "quality commands",
+            "NOT_VERIFIED",
+            f"repo de software ({', '.join(found[:3])}) sem typecheck/lint/test/smoke declarados: criar hm-quality.json com os comandos reais",
+        )
+    return Check("quality commands", "NOT_APPLICABLE", "nenhum marcador de software e nenhum hm-quality.json/package.json")
 TEST_ROOTS = {"test", "tests", "fixtures"}
 
 
@@ -386,7 +403,7 @@ def plan_checks(root: Path, base: str | None, distribution: str) -> list[Check]:
             if required not in present:
                 checks.append(Check(required, "NOT_VERIFIED", "comando não descoberto em hm-quality.json/package.json"))
     else:
-        checks.append(Check("quality commands", "NOT_APPLICABLE", "nenhum hm-quality.json/package.json; use checks específicos do projeto"))
+        checks.append(missing_quality_check(root))
     checks.extend(scan_changed_code(root, base))
     checks.extend([scan_rls(root), scan_llm_api_cost(root, distribution)])
     return checks
@@ -406,7 +423,7 @@ def execute_checks(root: Path, timeout: int, base: str | None, distribution: str
             result = run_command(command, root, timeout)
             checks.append(Check(required, result.status, result.evidence, result.duration_ms))
     else:
-        checks.append(Check("quality commands", "NOT_APPLICABLE", "nenhum hm-quality.json/package.json; use checks específicos do projeto"))
+        checks.append(missing_quality_check(root))
     checks.extend(scan_changed_code(root, base))
     checks.extend([scan_rls(root), scan_llm_api_cost(root, distribution)])
     return checks

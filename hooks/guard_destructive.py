@@ -201,6 +201,9 @@ TRIVIAL_WHERE = re.compile(
 )
 
 
+RANGE_WHERE = re.compile(r"<|>|\bbetween\b|\blike\b|\bglob\b|\b(date|datetime|julianday|strftime|now)\s*\(|\binterval\b|current_(date|timestamp)", re.IGNORECASE)
+
+
 def check_sql(sql: str) -> Verdict | None:
     clean = SQL_COMMENT.sub(" ", sql)
     trivial_literals = clean.replace("'1' = '1'", "1=1").replace("'1'='1'", "1=1")
@@ -211,6 +214,8 @@ def check_sql(sql: str) -> Verdict | None:
         tail = match.group("tail").strip()
         if not re.match(r"where\b", tail, re.IGNORECASE) or TRIVIAL_WHERE.search(tail):
             return "ask", "DELETE sem WHERE efetivo"
+        if RANGE_WHERE.search(tail):
+            return "ask", "DELETE por faixa ou padrão (data, <, >, BETWEEN, LIKE): rode SELECT com o mesmo WHERE antes; dado de teste sai por id exato"
     return None
 
 

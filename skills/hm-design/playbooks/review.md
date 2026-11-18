@@ -73,6 +73,15 @@ Além de contraste, foco visível e teclado:
 - **Ajuda consistente (3.2.6):** suporte e ajuda no mesmo lugar em todas as telas.
 - **Status anunciado:** mudança de estado relevante (salvo, erro, contador) chega ao leitor de tela via `aria-live`.
 
+## 6c. App nativo (macOS)
+
+Render de app nativo não passa por browser. Receita:
+
+- Capturar a janela real: `screencapture -l <windowid>`, com o id vindo de `CGWindowListCopyWindowInfo` (filtrar pelo nome do processo).
+- Duas larguras: a janela padrão e a **janela mínima**, que é o "mobile" do desktop. Nas duas, modo claro e escuro.
+- Lado a lado com a referência, na resolução real (sem escala), mesma tela e mesmo estado.
+- Conferir que o `minSize` declarado é o tamanho que o conteúdo realmente aceita: abaixo dele nada corta, nada sobrepõe, nada some.
+
 ## 7. Os sete eixos de avaliação
 
 1. **Sofisticação.** Todo elemento tem razão explicável pra existir. Decoração sem propósito reprova; complexidade sem clareza reprova.

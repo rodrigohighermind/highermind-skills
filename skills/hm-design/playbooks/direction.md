@@ -83,6 +83,10 @@ Produto puramente ferramenta/website sem agente ignora este bloco.
 - Set de fontes definido na direção do produto: um papel de display, um de corpo e, se houver dado denso, um utilitário.
 - Texto cortado, truncation não tratada ou orphan feio em heading reprova em review.
 
+## 7b. Peso tipográfico entre motores
+
+Clonando referência web (Chromium, Electron) num app nativo, o mesmo `font-weight` renderiza mais pesado no CoreText do macOS. Não copiar o número: calibrar pelo eixo `wght` da fonte variável, lado a lado com a referência na mesma resolução, até o peso visual bater. Registrar a tabela de equivalência no DS do projeto.
+
 ## 8. Tokens
 
 O design system do projeto é a fonte dos tokens: paleta semântica (fundo, superfície, texto, acento, estados), escala tipográfica, espaçamento, raio, elevação e motion. Status semânticos (saudável, atenção, em risco, crítico, bloqueado, concluído) têm cor própria e nunca dependem só da cor para serem lidos. Projeto sem DS nasce com tokens nomeados na direção (seção 12), não com hex espalhado pelo código.

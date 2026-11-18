@@ -16,6 +16,15 @@ codex exec --skip-git-repo-check "<prompt>" < /dev/null   # sem -m: usar o model
 - Única exceção: software em produção servindo terceiros (SaaS multi-tenant em servidor). Assinatura pessoal não cobre (auth + ToS). Aí API é permitida, com cost tracking obrigatório.
 - Detecção ativa em review: `new Anthropic(`, `new OpenAI(`, `AsyncAnthropic(` ou `*_API_KEY` em ferramenta pessoal = avisar o Owner e propor migração. Não construir feature nova por cima de client pago em ferramenta pessoal.
 
+### Formato canônico de chamada pela CLI
+
+```python
+env = {k: v for k, v in os.environ.items() if k not in ("ANTHROPIC_API_KEY", "OPENAI_API_KEY")}
+done = subprocess.run(["claude", "-p", prompt, "--output-format", "json"], env=env, capture_output=True, text=True, timeout=120, check=False)
+```
+
+Filtro de exclusão no env, `env.pop("...KEY")` ou `del env["...KEY"]` são reconhecidos pelo gate como remoção. Timeout e checagem do exit sempre.
+
 ## 1. Local-first: o modelo é a última camada
 
 Regex, cache e dado bruto local resolvem antes do modelo. Listagem, total, status, parsing determinístico: zero token. Hierarquia de custo:

@@ -36,6 +36,7 @@ Se o pensamento abaixo apareceu, pare. Ele precede a falha.
 |---|---|
 | "Deve funcionar agora" | Rode e leia a saída. |
 | "O teste está errado, ajusto ele" | Teste só muda quando a spec muda, e isso se declara. Mudar teste para passar é falsificar evidência. |
+| "Apago o que o teste criou pela data" | Dado de teste sai só por id exato. SELECT com o mesmo WHERE antes de qualquer DELETE. |
 | "Ele pediu para apagar, então apago direto" | O pedido autoriza a operação, não dispensa o backup. Cópia verificada primeiro, no mesmo turno. |
 | "É simples, não precisa de teste" | Bug simples também tem causa raiz e regressão. |
 | "Já que estou aqui, arrumo isso também" | Fora do pedido. Aponte, não mexa. |

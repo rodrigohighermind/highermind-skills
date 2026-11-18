@@ -45,6 +45,12 @@ Anti-patterns que reprovam direto:
 - Schema mudou no código sem migration correspondente (drift silencioso).
 - Migration destrutiva executada sem confirmação explícita (DROP, TRUNCATE nunca são silenciosos).
 
+## Dado de teste em banco real
+
+Teste ou smoke que escreve em banco com dado real cria registros com **marcador próprio** (coluna, prefixo ou tag de teste) e remove **só por id exato** dos registros que criou. Nunca por janela de tempo, padrão de texto ou "os últimos N".
+
+Antes de qualquer `DELETE`, rodar `SELECT` com o mesmo `WHERE` e conferir que a contagem é exatamente a esperada. Comparação de data entre formatos diferentes (ISO com `T` contra texto com espaço, timezone, epoch) erra em silêncio: normalizar os dois lados ou comparar por id.
+
 ## RLS · regra absoluta (Supabase / Postgres com PostgREST)
 
 Lei `rls-in-same-migration`. O modo de falha clássico: migrations que deixam tabelas dias sem RLS e uma view DEFINER vazando dados entre tenants até alguém notar. Sem RLS, qualquer pessoa com a URL do projeto + anon key lê, edita e deleta a tabela.

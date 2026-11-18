@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -71,35 +72,77 @@ def record_base(cwd: Path) -> None:
             return
 
 
-def read_cwd() -> Path:
+STATE = Path(__file__).resolve().parent / ".sessions"
+
+
+def read_payload() -> dict[str, object]:
     raw = sys.stdin.read() if not sys.stdin.isatty() else ""
-    if raw.strip():
-        payload = json.loads(raw)
-        if isinstance(payload, dict) and isinstance(payload.get("cwd"), str):
-            return Path(payload["cwd"]).resolve()
-    return Path(os.getcwd()).resolve()
+    payload = json.loads(raw) if raw.strip() else {}
+    return payload if isinstance(payload, dict) else {}
+
+
+def already_injected(session: str) -> bool:
+    return bool(session) and (STATE / session).exists()
+
+
+def mark_injected(session: str) -> None:
+    if not session or not re.fullmatch(r"[A-Za-z0-9_-]{1,80}", session):
+        return
+    STATE.mkdir(exist_ok=True)
+    (STATE / session).touch()
+    cutoff = time.time() - 7 * 86400
+    for old in STATE.iterdir():
+        if old.stat().st_mtime < cutoff:
+            old.unlink(missing_ok=True)
+
+
+def touched_dirs(payload: dict[str, object], cwd: Path) -> list[Path]:
+    """Onde o agente foi de fato: destinos de `cd`/`-C` no comando e o arquivo lido ou editado.
+    O cwd do payload continua sendo o de início quando o `cd` sai da pasta de trabalho."""
+    tool_input = payload.get("tool_input")
+    if not isinstance(tool_input, dict):
+        return []
+    found: list[Path] = []
+    command = tool_input.get("command")
+    if isinstance(command, str):
+        for match in re.finditer(r"(?:^|[;&|]\s*|\bcd\s+|-C\s+)(?:cd\s+)?(['\"]?)([~/.][^\s;&|'\"]*)\1", command):
+            raw = match.group(2)
+            target = Path(os.path.expanduser(raw))
+            found.append((target if target.is_absolute() else cwd / target).resolve())
+    for key in ("file_path", "path", "notebook_path"):
+        value = tool_input.get(key)
+        if isinstance(value, str) and value:
+            path = Path(os.path.expanduser(value))
+            path = (path if path.is_absolute() else cwd / path).resolve()
+            found.append(path if path.is_dir() else path.parent)
+    return [p for p in found if p.exists()][:8]
 
 
 def main() -> int:
+    """SessionStart injeta se a sessão abre num repo de software. PostToolUse (Bash) cobre a sessão que
+    começa fora e entra num repo depois: injeta uma vez, na primeira vez que o diretório vira software."""
     started = time.monotonic()
     try:
-        cwd = read_cwd()
+        payload = read_payload()
+        event = str(payload.get("hook_event_name") or "SessionStart")
+        session = str(payload.get("session_id") or "")
+        cwd = Path(str(payload.get("cwd") or os.getcwd())).resolve()
+        if event != "SessionStart" and already_injected(session):
+            return 0
+        candidates = [cwd] + touched_dirs(payload, cwd) if event != "SessionStart" else [cwd]
+        cwd = next((c for c in candidates if should_inject(c)), cwd)
         if not should_inject(cwd):
-            orbit_log.log({"ev": "session", "injected": False, "ms": round((time.monotonic() - started) * 1000, 1)})
+            if event == "SessionStart":
+                orbit_log.log({"ev": "session", "injected": False, "ms": round((time.monotonic() - started) * 1000, 1)})
             return 0
         kernel = KERNEL.read_text(encoding="utf-8")
         record_base(cwd)
+        mark_injected(session)
     except (OSError, ValueError) as error:
         orbit_log.log({"ev": "error", "hook": "session_start", "err": type(error).__name__})
         return 0
-    orbit_log.log({"ev": "session", "injected": True, "repo": cwd.name, "ms": round((time.monotonic() - started) * 1000, 1)})
-    output = {
-        "hookSpecificOutput": {
-            "hookEventName": "SessionStart",
-            "additionalContext": kernel,
-        }
-    }
-    sys.stdout.write(json.dumps(output, ensure_ascii=False))
+    orbit_log.log({"ev": "session", "injected": True, "via": event, "repo": cwd.name, "ms": round((time.monotonic() - started) * 1000, 1)})
+    sys.stdout.write(json.dumps({"hookSpecificOutput": {"hookEventName": event, "additionalContext": kernel}}, ensure_ascii=False))
     return 0
 
 

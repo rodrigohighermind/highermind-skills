@@ -148,6 +148,8 @@ Responsabilidade do Dev Team, nunca do Owner. Não é "build compila": é dirigi
 - **Concorrência**: 2 abas simultâneas não colidem; click duplo em mutação protegido; write race com transaction + unique index.
 - **Dados**: operação destrutiva confirma; backup automático em momento chave; dado persiste entre restarts.
 
+Smoke que escreve em dado real limpa o que criou: marcador próprio nos registros de smoke e remoção por id exato ao final, conferida por `SELECT`.
+
 ## 8. Reprodutibilidade: clone limpo
 
 1. Clone do repo. 2. `cp .env.example .env`. 3. Comando único de subida. 4. Funciona?
