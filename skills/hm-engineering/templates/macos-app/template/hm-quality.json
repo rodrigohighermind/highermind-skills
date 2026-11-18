@@ -1,0 +1,24 @@
+{
+  "commands": {
+    "typecheck": [
+      "swift",
+      "build"
+    ],
+    "lint": [
+      "bash",
+      "-c",
+      "out=$(swift build -c release 2>&1) || { printf '%s\\n' \"$out\"; exit 1; }; if printf '%s\\n' \"$out\" | grep -qE 'warning:|error:'; then printf '%s\\n' \"$out\"; exit 1; fi"
+    ],
+    "test": [
+      "swift",
+      "test"
+    ],
+    "smoke": [
+      "bash",
+      "scripts/smoke.sh"
+    ]
+  },
+  "macos_apps": [
+    "~/Applications/__APP_NAME__.app"
+  ]
+}

@@ -24,6 +24,18 @@ Antes de qualquer entrega visual ser declarada baseline-ready:
 
 Sem comparação lado a lado registrada, a entrega visual não está pronta pra passar ao Owner.
 
+## 2b. Régua de paridade (clone ou referência)
+
+Vale desde o primeiro build de qualquer produto que tem referência.
+
+1. **Medir antes de construir.** Capturar a referência em 2x e medir posição e tamanho em pt, pesos e cores dos elementos estruturais (barra de título, controles da janela, sidebar, ícones, espaçamentos). Esses números viram a especificação; estimativa de olho erra por 2 pt sem ninguém perceber.
+2. **Régua automática.** Um script mede a mesma coisa na referência e na captura do produto e compara com tolerância de no máximo 1 pt. Contraprova obrigatória: referência contra ela mesma passa, versão com defeito plantado falha. Régua sem contraprova não é evidência.
+3. **Depois da régua, o olho.** Lado a lado na mesma escala. A régua não vê forma de glifo nem cor: ícone preenchido contra contorno, controle cinza contra branco, botão ausente.
+4. **Estados e tamanhos obrigatórios:** janela padrão e mínima, painéis recolhidos e abertos, claro e escuro. Painel recolhido costuma revelar conteúdo encostado na borda.
+5. **Configuração de build é design.** O sistema desenha o chrome conforme o SDK gravado no binário: app macOS linkado contra SDK antigo ganha controles de janela e materiais legados no sistema novo. Check: `otool -l <binário> | grep -A5 LC_BUILD_VERSION`, com `sdk` maior ou igual à versão do sistema alvo. O `hm_gate` faz esse check sozinho: acha os `.app` do repo ou lê `macos_apps` no `hm-quality.json`, e reprova SDK anterior ao sistema.
+
+Defeito apontado pelo dono do produto entra aqui como checagem nova da régua ou do checklist, no mesmo trabalho da correção.
+
 ## 3. Screenshots como evidência
 
 Finding visual sem screenshot é hipótese. Disciplina de captura:
@@ -61,6 +73,25 @@ Proporcional ao trabalho, mas o baseline é:
 - console sem erro;
 - comparação com a tese visual aprovada (direção) e com a referência (pixel perfect).
 
+## 6a. Acabamento: a classe de defeito
+
+A barra é um app nativo da Apple: se a Apple não deixaria passar, reprova. Os defeitos abaixo são uma classe; cada um é FAIL e cada um tem a sua prova.
+
+| Defeito | Prova |
+|---|---|
+| Transição seca ou com emenda | gravação ou burst de screenshots durante a animação, quadros intermediários conferidos |
+| Camada por cima mal composta: scrim parcial, escalando ou piscando | idem, com o scrim cobrindo a janela inteira em todos os quadros ([direção §11b2](direction.md)) |
+| Salto de layout ou de texto ao carregar ou trocar estado | quadros antes, durante e depois da troca, mesma posição dos elementos estáveis |
+| Flicker | burst durante carga, troca de rota e revalidação |
+| Animação sem curva ou longa demais | duração e curva lidas no código e conferidas nos quadros ([direção §11b](direction.md)) |
+| Estado sem desenho: vazio, carregando, erro, sucesso | cada estado forçado (fixture, rede bloqueada, mock) e visto em screenshot |
+| Foco ou hover inconsistente | navegação por teclado e hover em todos os elementos interativos do fluxo |
+| Elemento cortado ou desalinhado | janela mínima, padrão e larga, claro e escuro |
+
+Sem a prova da linha, o item é `NOT_VERIFIED`, nunca PASS. Screenshot parado só prova estado parado.
+
+**Achou um, procure os irmãos.** Defeito da classe encontrado num lugar é hipótese de que o mesmo mecanismo existe em outros: varrer o produto inteiro pelo mecanismo (a mesma transição, o mesmo componente, o mesmo padrão de carga) e corrigir na fonte compartilhada. Reportar só o caso pedido é corrigir o caso, não a causa.
+
 ## 6b. Acessibilidade que costuma escapar (WCAG 2.2)
 
 Além de contraste, foco visível e teclado:
@@ -75,11 +106,14 @@ Além de contraste, foco visível e teclado:
 
 ## 6c. App nativo (macOS)
 
+App criado pelo starter de `hm-engineering` (`templates/macos-app`) já traz os ganchos de revisão: `APP_PREVIEW` abre página e estado, `APP_SLOW_MOTION` desacelera toda transição para a prova quadro a quadro, `APP_DEMO_MODAL` abre a camada por cima, e `tools/design_parity.py` é a régua.
+
 Render de app nativo não passa por browser. Receita:
 
 - Capturar a janela real: `screencapture -l <windowid>`, com o id vindo de `CGWindowListCopyWindowInfo` (filtrar pelo nome do processo).
 - Duas larguras: a janela padrão e a **janela mínima**, que é o "mobile" do desktop. Nas duas, modo claro e escuro.
 - Lado a lado com a referência, na resolução real (sem escala), mesma tela e mesmo estado.
+- Conferir o SDK gravado no binário (`otool -l` em `LC_BUILD_VERSION`, `sdk` maior ou igual ao sistema alvo): SDK antigo desenha chrome legado.
 - Conferir que o `minSize` declarado é o tamanho que o conteúdo realmente aceita: abaixo dele nada corta, nada sobrepõe, nada some.
 
 ## 7. Os sete eixos de avaliação
@@ -112,6 +146,8 @@ Qualquer item presente = FAIL direto, com localizador:
 - [ ] em TUI: bloco rico renderizado como string plain quando o framework tem componentes (Ink, Bubble Tea)
 - [ ] wrapper/classe/margin fora do DS quando existe referência
 - [ ] console.error durante o fluxo revisado
+- [ ] qualquer defeito da classe de acabamento (§6a)
+- [ ] movimento ou estado aprovado sem a prova da linha correspondente em §6a
 
 Estas rejeições são profile da casa, não lei universal: em trabalho pra outra marca, o brand context do cliente substitui o taste, a barra de craft e o pixel perfect 1 permanecem.
 

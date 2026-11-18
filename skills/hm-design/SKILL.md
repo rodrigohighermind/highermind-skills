@@ -11,6 +11,10 @@ Transformar a tese do produto em experiência compreensível, distinta e impleme
 
 **Lei de ferro: nenhum veredito sobre tela sem vê-la.** Antes de aprovar, reprovar ou dizer que está bom: renderizar (seção Render), salvar os screenshots em `.orbit/review/`, ler console e erros da página. Sem isso, o veredito é `NOT_VERIFIED`, por mais óbvio que o código pareça.
 
+**Lei de acabamento: a barra é um app nativo da Apple.** Se a Apple não deixaria passar, reprova. Defeito de acabamento é uma classe, não um caso: transição seca ou com emenda, camada por cima mal composta, salto de layout, flicker, animação sem curva ou longa demais, estado sem desenho, foco ou hover inconsistente, elemento cortado ou desalinhado em qualquer tamanho. Movimento se prova quadro a quadro e estado se prova forçado e visto; sem isso, `NOT_VERIFIED`. Achou um defeito da classe: varrer o produto inteiro atrás dos irmãos dele antes de corrigir só o reportado.
+
+**Lei de processo: defeito que o dono do produto acha é falha do processo.** Corrigir e, no mesmo trabalho, adicionar a checagem que o teria pegado. Clone ou referência se mede antes de construir (geometria em pt, peso, cor, a partir de captura em 2x) e se prova com régua de paridade automática e depois lado a lado no olho ([review §2b](playbooks/review.md)). Número de olho não existe.
+
 1. Se o HM Orbit não está no contexto, ler [references/orbit.md](references/orbit.md).
 2. Ler o profile da casa em [references/profile.md](references/profile.md). Brief do Owner vence o profile; profile vence default de IA.
 3. Ler o real antes de propor: rotas, componentes, tokens, screenshots e o design system existente. Com DS ou referência na mão, copiar o uso exato, nunca inventar wrapper.

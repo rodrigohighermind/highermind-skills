@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import platform
 import re
 import subprocess
 import sys
@@ -394,6 +396,97 @@ def scan_llm_api_cost(root: Path, distribution: str) -> Check:
     return Check("custo LLM pessoal", "NOT_VERIFIED", "classifique --distribution personal|saas: " + ", ".join(hits))
 
 
+BUILD_VERSION = re.compile(r"cmd LC_BUILD_VERSION.*?minos (\d+)(?:\.\d+)*.*?sdk (\d+)(?:\.\d+)*", re.DOTALL)
+SKIP_DIRS = {".git", "node_modules", ".venv", "Pods", "DerivedData"}
+
+
+def parse_build_version(otool_output: str) -> tuple[int, int] | None:
+    """(minos major, sdk major) do LC_BUILD_VERSION, ou None se o binário não tem o comando."""
+    match = BUILD_VERSION.search(otool_output)
+    return (int(match.group(1)), int(match.group(2))) if match else None
+
+
+def sdk_verdict(sdk_major: int, system_major: int) -> str:
+    """O macOS desenha o chrome conforme o SDK gravado: SDK anterior ao sistema = visual legado."""
+    return "FAIL" if sdk_major < system_major else "PASS"
+
+
+def swiftpm_release_binaries(root: Path) -> list[Path]:
+    """Executáveis do build release do SwiftPM: o SDK gravado é o mesmo que o app instalado terá."""
+    release = root / ".build" / "release"
+    if not release.is_dir():
+        return []
+    return sorted(p for p in release.iterdir() if p.is_file() and not p.suffix and os.access(p, os.X_OK))[:5]
+
+
+def macos_app_binaries(root: Path) -> list[Path]:
+    declared: list[Path] = []
+    quality = root / "hm-quality.json"
+    if quality.exists():
+        raw = json.loads(quality.read_text(encoding="utf-8")).get("macos_apps", [])
+        for item in raw if isinstance(raw, list) else []:
+            if isinstance(item, str) and item:
+                path = Path(os.path.expanduser(item))
+                path = path if path.is_absolute() else root / path
+                declared.extend(sorted(p for p in (path / "Contents" / "MacOS").glob("*") if p.is_file()) if path.suffix == ".app" else [path])
+    found: list[Path] = []
+    for app in root.rglob("*.app"):
+        if len(found) >= 10 or SKIP_DIRS.intersection(app.relative_to(root).parts):
+            continue
+        found.extend(p for p in (app / "Contents" / "MacOS").glob("*") if p.is_file())
+    if not declared and not found and is_macos_ui_package(root):
+        found.extend(swiftpm_release_binaries(root))
+    return declared + found
+
+
+def declared_missing(root: Path) -> list[str]:
+    quality = root / "hm-quality.json"
+    if not quality.exists():
+        return []
+    raw = json.loads(quality.read_text(encoding="utf-8")).get("macos_apps", [])
+    items = [item for item in raw if isinstance(item, str) and item] if isinstance(raw, list) else []
+    return [item for item in items if not (Path(os.path.expanduser(item)) if Path(os.path.expanduser(item)).is_absolute() else root / item).exists()]
+
+
+def is_macos_ui_package(root: Path) -> bool:
+    manifest = root / "Package.swift"
+    if not manifest.exists() or ".macOS(" not in manifest.read_text(encoding="utf-8", errors="replace"):
+        return False
+    return any(
+        re.search(r"^import (SwiftUI|AppKit)\b", source.read_text(encoding="utf-8", errors="replace"), re.MULTILINE)
+        for source in list(root.rglob("*.swift"))[:400]
+        if not SKIP_DIRS.intersection(source.relative_to(root).parts) and ".build" not in source.parts
+    )
+
+
+def scan_macos_sdk(root: Path) -> Check:
+    binaries = macos_app_binaries(root)
+    if not binaries:
+        missing = declared_missing(root)
+        if missing:
+            return Check("SDK do app macOS", "NOT_VERIFIED", f"app declarado não encontrado ({', '.join(missing)}) e sem build release: rode o build ou o install")
+        if is_macos_ui_package(root):
+            return Check("SDK do app macOS", "NOT_VERIFIED", "app macOS com UI sem binário encontrado: declarar macos_apps no hm-quality.json")
+        return Check("SDK do app macOS", "NOT_APPLICABLE", "nenhum app macOS")
+    release = platform.mac_ver()[0]
+    if not release:
+        return Check("SDK do app macOS", "NOT_VERIFIED", "não é macOS: versão do sistema desconhecida")
+    system_major = int(release.split(".")[0])
+    problems: list[str] = []
+    for binary in binaries:
+        result = run_process(["otool", "-l", str(binary)], root)
+        if result is None or result.returncode != 0:
+            return Check("SDK do app macOS", "NOT_VERIFIED", f"otool indisponível ou falhou em {binary}")
+        parsed = parse_build_version(result.stdout)
+        if parsed is None:
+            return Check("SDK do app macOS", "NOT_VERIFIED", f"sem LC_BUILD_VERSION em {binary}")
+        if sdk_verdict(parsed[1], system_major) == "FAIL":
+            problems.append(f"{binary.name}: sdk {parsed[1]} < macOS {system_major} (chrome legado)")
+    if problems:
+        return Check("SDK do app macOS", "FAIL", "; ".join(problems))
+    return Check("SDK do app macOS", "PASS", f"{len(binaries)} binário(s) com sdk >= macOS {system_major}")
+
+
 def plan_checks(root: Path, base: str | None, distribution: str) -> list[Check]:
     commands = project_commands(root)
     checks = [Check(role, "NOT_VERIFIED", "planejado: " + " ".join(command)) for role, command in commands]
@@ -405,7 +498,7 @@ def plan_checks(root: Path, base: str | None, distribution: str) -> list[Check]:
     else:
         checks.append(missing_quality_check(root))
     checks.extend(scan_changed_code(root, base))
-    checks.extend([scan_rls(root), scan_llm_api_cost(root, distribution)])
+    checks.extend([scan_rls(root), scan_llm_api_cost(root, distribution), scan_macos_sdk(root)])
     return checks
 
 
@@ -425,7 +518,7 @@ def execute_checks(root: Path, timeout: int, base: str | None, distribution: str
     else:
         checks.append(missing_quality_check(root))
     checks.extend(scan_changed_code(root, base))
-    checks.extend([scan_rls(root), scan_llm_api_cost(root, distribution)])
+    checks.extend([scan_rls(root), scan_llm_api_cost(root, distribution), scan_macos_sdk(root)])
     return checks
 
 

@@ -55,7 +55,7 @@ Antes de qualquer `DELETE`, rodar `SELECT` com o mesmo `WHERE` e conferir que a 
 
 Lei `rls-in-same-migration`. O modo de falha clássico: migrations que deixam tabelas dias sem RLS e uma view DEFINER vazando dados entre tenants até alguém notar. Sem RLS, qualquer pessoa com a URL do projeto + anon key lê, edita e deleta a tabela.
 
-1. **Toda `CREATE TABLE` em schema `public` inclui `ENABLE ROW LEVEL SECURITY` + ao menos uma `CREATE POLICY` na MESMA migration.** "Faço o RLS depois" é proibido.
+1. **Toda `CREATE TABLE` em schema `public` inclui `ENABLE ROW LEVEL SECURITY` + `CREATE POLICY` para cada operação que o app faz pela API (SELECT, INSERT, UPDATE, DELETE), na MESMA migration.** Policy só de leitura numa tabela que o app escreve deixa a feature quebrada; o teste de cada operação prova os dois lados: o dono consegue, o outro tenant é negado. Operação que o app não faz fica sem policy de propósito, e isso se declara. "Faço o RLS depois" é proibido.
 2. **Toda `CREATE VIEW` (ou materialized view) que toca fonte com RLS inclui `WITH (security_invoker=true)`.** Postgres 15+ trata view como SECURITY DEFINER por default e bypassa as policies das tabelas-fonte. Exceção só com justificativa escrita de por que precisa rodar como definer.
 3. **Antes de fechar sprint em projeto Supabase:** `supabase db advisors --linked --level error` e esperar `No issues found`. Advisor limpo é evidência adicional, não substituto do audit local.
 4. Email semanal do Supabase Security Advisor é ping de produção, não spam.

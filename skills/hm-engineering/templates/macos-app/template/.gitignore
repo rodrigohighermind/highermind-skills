@@ -1,0 +1,6 @@
+.build/
+.swiftpm/
+.orbit/review/
+*.xcodeproj/
+.DS_Store
+__pycache__/

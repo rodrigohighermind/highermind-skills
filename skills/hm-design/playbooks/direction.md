@@ -132,6 +132,14 @@ Quanto mais frequente a ação, menos animação:
 
 Saída mais rápida que entrada. Nunca `scale(0)` (partir de ~0.95 com opacidade). Easing que desacelera no fim para entrada. Toda animação respeita `prefers-reduced-motion`. Review de motion no formato Antes · Depois · Por quê.
 
+## 11b2. Camada por cima: scrim e conteúdo separados
+
+Vale para modal, sheet, dialog, popover e drawer.
+
+1. **Scrim e conteúdo são camadas separadas.** O scrim só faz fade (0,2 a 0,25 s, ease-in-out) e cobre a janela ou viewport inteira durante toda a transição. Nunca escala nem desliza: transform no conjunto scrim + caixa encolhe o scrim no meio da animação e expõe as bordas sem escurecer.
+2. **O conteúdo entra com mola suave:** escala 0,96 para 1, cerca de 8 px de deslocamento e opacidade. Sai mais rápido e mais simples: cerca de 0,14 s ease-in, opacidade e escala 0,98.
+3. **Reduce motion** (`prefers-reduced-motion` ou o ajuste do sistema): só fade.
+
 ## 11c. Destino da direção
 
 Direção aprovada vive no repo como `DESIGN.md` (tokens com a razão de cada escolha em prosa) ou no design system existente, nunca só na conversa. Mudança de direção é diff nesse arquivo.

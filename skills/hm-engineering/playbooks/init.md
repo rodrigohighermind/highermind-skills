@@ -40,6 +40,16 @@ O agente executa; a UI dá visibilidade e override. Antes de criar tela: "o agen
 - Quality commands funcionando desde o commit zero: `typecheck`, `lint`, `test`, `build`. São os comandos que o gate de ship vai rodar; se não existem, baseline-ready nunca é verificável.
 - Sem arquivo placeholder, sem TODO no dia um. Tudo que existe funciona. O projeto RODA após o init.
 
+## 3b. App nativo macOS: nasce do starter
+
+App macOS novo não começa do zero nem de projeto copiado: nasce do starter, que já traz SDK atual, chrome nativo, tokens claro e escuro, transição de camada correta, ganchos de QA, régua de paridade e o gate verde.
+
+```bash
+python3 <skill>/templates/macos-app/new_app.py "Nome do App" com.empresa.app <destino>
+```
+
+O gerador renomeia tudo, cria o git com o primeiro commit e recusa destino existente. Detalhes do que vem pronto em `templates/macos-app/README.md`. Divergir do starter é decisão declarada no `CLAUDE.md` do projeto, com o motivo.
+
 ## 4. Infra local Docker-first (quando há serviços)
 
 - `docker compose up` sobe tudo: banco, cache, serviços. Um comando.

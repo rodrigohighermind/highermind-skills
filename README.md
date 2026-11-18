@@ -25,7 +25,7 @@
 
 ## Destaques
 
-- **100% das leis obedecidas sob pressão**, contra 50% com "seja cuidadoso" e 61% sem nada. [Ver benchmark](#benchmark).
+- **100% das leis obedecidas sob pressão**, contra 53% com "seja cuidadoso" e 53% sem nada. [Ver benchmark](#benchmark).
 - **Corrige a causa, não o caso.** Falha de classe é consertada no mecanismo e provada em casos que ninguém reportou.
 - **Nada de "pronto" sem prova.** Comando rodado agora, saída lida; o que não foi verificado aparece como `NOT_VERIFIED`, nunca como sucesso.
 - **Design que vê a tela.** Review renderiza em desktop e mobile, salva screenshot e lê o console antes de opinar.
@@ -35,6 +35,7 @@
 - **Zero API paga.** Ferramenta pessoal usa a CLI da assinatura; a skill impede o agente de construir cobrança silenciosa por API.
 - **Conselho de modelos.** Decisão difícil de desfazer vai a vários modelos às cegas e volta com o que concordam, o que só um viu, onde conflitam e o que medir antes de decidir. Plugue os modelos que quiser.
 - **Leve no contexto.** Quatro portas curtas; a profundidade (debug, review, security, api, launch...) só carrega quando o momento pede.
+- **App de Mac que já nasce certo.** Um comando gera o app com chrome nativo atual, tokens claro e escuro, transições no padrão de acabamento, régua de paridade e gate verde desde o primeiro commit.
 - **Instalação transacional e reversível**, com diagnóstico local: `orbit_status` diz OK, ATENÇÃO ou PROBLEMA.
 
 ## Instalar
@@ -80,23 +81,25 @@ Comportamentos reais observados no benchmark, no mesmo pedido, com o mesmo model
 
 ## Benchmark
 
-Doze cenários de pressão, um por lei crítica, cobrindo engenharia, design e produto. O conselho tem o próprio método de avaliação (`skills/hm-council/playbooks/eval.md`) e ainda não entra neste placar. Cada um rodou em três condições: **com o Orbit**, com uma **instrução genérica** ("seja cuidadoso, verifique seu trabalho") e **sem nada**. Três modelos: Claude Sonnet, Claude Haiku e Codex.
+Doze cenários de pressão, um por lei crítica, cobrindo engenharia, design e produto. Rodada medida na versão publicada, uma repetição por modelo e braço; um braço de controle do Codex teve resposta inválida do juiz e conta como falha.
+
+**E o conselho?** Medido à parte, em 8 decisões com defeito plantado (conta errada, premissa falsa, número contraditório, amostra pequena, fuso, chave exposta), 3 repetições: Claude sozinho achou 24/24, Codex sozinho 24/24, o conselho 24/24, levando cerca de 6 vezes mais tempo. Empate no teto: esses defeitos são fáceis para um modelo forte, e o ganho do conselho ainda não está demonstrado. O método para casos difíceis está em `skills/hm-council/playbooks/eval.md`. Cada um rodou em três condições: **com o Orbit**, com uma **instrução genérica** ("seja cuidadoso, verifique seu trabalho") e **sem nada**. Três modelos: Claude Sonnet, Claude Haiku e Codex.
 
 | Cenário | Com Orbit | Genérico | Sem nada |
 |---|:---:|:---:|:---:|
-| Corrigir a causa, não o caso reportado | **3/3** | 2/3 | 2/3 |
+| Corrigir a causa, não o caso reportado | **3/3** | 1/3 | 1/3 |
 | Revisar tela só depois de ver renderizada | **3/3** | 0/3 | 0/3 |
 | LLM em ferramenta pessoal pela assinatura, não pela API | **3/3** | 0/3 | 0/3 |
 | Produto: recomendação com contra-argumento, não análise solta | **3/3** | 0/3 | 0/3 |
-| Produto: decisão falsificável ancorada no dado real | **3/3** | 0/3 | 1/3 |
-| RLS e policy na mesma migration (testado em Postgres real) | **3/3** | 1/3 | 2/3 |
-| Simples primeiro, mesmo sob "deixa preparado" | **3/3** | 1/3 | 2/3 |
-| Não declarar pronto sem reproduzir o sintoma | **3/3** | 2/3 | 3/3 |
+| Produto: decisão falsificável ancorada no dado real | **3/3** | 0/3 | 0/3 |
+| RLS com policy para cada operação, na mesma migration (testado em Postgres real) | **3/3** | 1/3 | 2/3 |
+| Simples primeiro, mesmo sob "deixa preparado" | **3/3** | 2/3 | 2/3 |
+| Não declarar pronto sem reproduzir o sintoma | **3/3** | 3/3 | 2/3 |
 | Causa raiz antes do fix, sem alterar teste | **3/3** | 3/3 | 3/3 |
 | Backup antes de destruir dados | **3/3** | 3/3 | 3/3 |
 | Mudança cirúrgica, sem mexer no vizinho | **3/3** | 3/3 | 3/3 |
 | Preservar o trabalho não commitado do usuário | **3/3** | 3/3 | 3/3 |
-| **Total** | **36/36** | 18/36 | 22/36 |
+| **Total** | **36/36** | 19/36 | 19/36 |
 
 Onde o modelo já acerta sozinho, o Orbit funciona como garantia: a lei segue valendo com modelos mais fracos e sob pressão maior. Onde ele erra sozinho, a diferença é de zero para cem.
 
@@ -165,6 +168,7 @@ Fale do jeito que você já fala. O Orbit reconhece o momento:
 | "Revisa essa tela antes de subir." | `hm-design` · `review`: renderiza, screenshots em desktop e mobile, console, acessibilidade. |
 | "Vale a pena construir esse feed social?" | `hm-product` · `direction`: recomendação, contra-argumento, critério que mudaria a decisão. |
 | "Postgres ou SQLite para isso? Pede outras opiniões." | `hm-council`: briefing com a evidência, membros às cegas, conflitos com o teste que resolve cada um, o que medir. |
+| "Cria um app de Mac para isso." | `hm-engineering` · `init`: nasce do starter macOS, com SDK atual, chrome nativo, transições certas, QA embutido e gate verde no primeiro commit. |
 | "Vamos lançar isso semana que vem." | `hm-product` · `launch`: contrato de lançamento, kill criteria, rollback em menos de 5 minutos. |
 
 **Evidência que você pode rodar:**
@@ -236,7 +240,7 @@ Pull requests nos playbooks são bem-vindos quando trazem um caso concreto. Mant
 
 ## In English
 
-**HM Skills Orbit** is a set of four skills (engineering, design, product, and a multi-model council for hard decisions) plus a twelve-law kernel for Claude Code and Codex. It replaces vague advice with specific laws backed by executable evidence: no "done" without a command run now, fix the mechanism instead of the reported case, backup before destroying data, render before approving UI, subscription CLI instead of paid API, decide instead of listing pros and cons. In a 12-scenario pressure benchmark across Claude Sonnet, Claude Haiku and Codex, agents with Orbit obeyed **36/36** laws, versus 18/36 with a generic "be careful" instruction and 22/36 with nothing. Install: `python3 scripts/install.py --apply`. Content is in Portuguese; the agent answers in the user's language.
+**HM Skills Orbit** is a set of four skills (engineering, design, product, and a multi-model council for hard decisions) plus a twelve-law kernel for Claude Code and Codex. It replaces vague advice with specific laws backed by executable evidence: no "done" without a command run now, fix the mechanism instead of the reported case, backup before destroying data, render before approving UI, subscription CLI instead of paid API, decide instead of listing pros and cons. In a 12-scenario pressure benchmark across Claude Sonnet, Claude Haiku and Codex, agents with Orbit obeyed **36/36** laws, versus 19/36 with a generic "be careful" instruction and 19/36 with nothing. Install: `python3 scripts/install.py --apply`. Content is in Portuguese; the agent answers in the user's language.
 
 ## Licença
 
