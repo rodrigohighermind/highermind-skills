@@ -79,6 +79,10 @@ Interface "ao vivo" (transcrição, streaming, colaboração, progresso) mede o 
 
 **Especular para esconder pós-processamento.** Passo caro que roda depois da unidade completa (formatação, classificação, enriquecimento) roda antes, no parcial, enquanto o evento ainda acontece. Quando o final chega, se a entrada do passo bate com a do parcial, o resultado é reaproveitado; se não bate, roda de novo. A conferência é por igualdade da entrada, nunca "parecido o bastante".
 
+Única exceção, e ela é assimétrica: quando o passo é um detector que só age numa minoria das entradas, o veredito especulativo claramente negativo vale também para um final quase igual ao parcial, e o passo é pulado. Veredito positivo ou duvidoso nunca é reaproveitado por semelhança: roda de novo no final. Porquê: pular um negativo claro custa no máximo uma transformação que deixou de acontecer; reaproveitar um positivo aplicaria a transformação sobre um texto que não foi o avaliado. Prova: no conjunto de áudios reais, a saída com o atalho é idêntica à saída sem ele, e a latência das entradas da maioria cai pelo custo do estágio.
+
+**Custo de estágio de modelo é medido por amostra.** Todo estágio de modelo no caminho crítico (classificador, formatador, verificador) tem a latência registrada por entrada real e por estágio, num placar único que roda a cada mudança. Porquê: média e mediana escondem a classe de entradas comuns que fura o filtro barato e paga o estágio caro sem precisar dele; só a linha por amostra mostra quem pagou e por quê. Prova: o placar lista, por entrada, o tempo de cada estágio e se ele mudou a saída; estágio que cobra de muitas entradas e muda poucas é o próximo alvo.
+
 ## Database
 
 - Todo FK indexado; WHERE frequente = composite index. `EXPLAIN ANALYZE` prova, opinião não.
@@ -165,6 +169,7 @@ Patterns completos em `playbooks/llm.md`. Métricas pro perf review:
 | Working memory | ~15 turns |
 | Contexto injetado | trecho relevante, não documento inteiro |
 | Custo por usuário/mês | estimado, com alerta definido |
+| Latência por estágio de modelo | por amostra, não só agregada (ver Latência percebida) |
 
 ## Build
 
