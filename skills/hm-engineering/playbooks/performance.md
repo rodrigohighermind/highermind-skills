@@ -43,6 +43,17 @@ Anti-patterns: import de lib inteira (`import _ from 'lodash'`), moment.js (usar
 
 Anti-patterns: inline object/array como prop (quebra memo), useEffect com deps erradas, lista >200 itens sem virtualização, imagem sem otimização/lazy, web font sem `font-display: swap`.
 
+## Atualização periódica · medir em escala
+
+Tela que se atualiza sozinha (timer, polling, observador de arquivo) é medida com dados sintéticos de dez a vinte e cinco vezes o volume atual antes do ship. Porquê: o custo de cada ciclo cresce com o acervo e fica invisível no volume de desenvolvimento; quem descobre é o usuário, meses depois, com a interface travando. Prova: tempo de um ciclo de atualização medido no volume sintético, dentro do orçamento de um frame de interação, e ciclo sem mudança nos dados custando perto de zero.
+
+O ciclo barato sai de quatro regras, válidas em qualquer framework reativo:
+
+- **Reler só o que mudou.** Cache por data de modificação (ou versão, ou etag) da fonte. Ciclo que relê e decodifica tudo a cada disparo é trabalho proporcional ao acervo, repetido para sempre.
+- **Publicar estado só quando o valor muda.** Atribuir um valor igual ainda invalida a view e dispara render. Comparar antes de atribuir.
+- **Objeto caro de construir é compartilhado.** Formatter de data ou número, regex compilada e decoder são criados uma vez, nunca por item nem por ciclo.
+- **Não refazer o que a fonte já entrega.** Dado que já vem ordenado ou filtrado não é reordenado a cada ciclo.
+
 ## Backend · latência de API
 
 | Métrica | Alvo |
