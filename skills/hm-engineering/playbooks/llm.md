@@ -243,6 +243,9 @@ A prova é varrer o conjunto inteiro pela classe (por exemplo, variantes de nome
 - O prompt pede o que **não** foi encontrado na fonte ("diga o que não achou"), o que reduz invenção para preencher lacuna.
 - **Suporte por amostragem:** que o trecho citado sustenta a afirmação se confere por amostra humana ou juiz cego, com o número da amostra na evidência.
 - **A citação é interface, não rodapé:** clicar leva ao trecho de origem. Em domínio de alto risco (saúde, jurídico, financeiro), afirmação sem citação verificável não é exibida como fato.
+- **Identificador interno de citação nunca vira nome na prosa.** O número ou id que o prompt dá a cada fonte só existe dentro da citação; no texto, a fonte é chamada pelo que o usuário reconhece (título, data, autor), e o prompt diz isso. Porquê: o usuário nunca viu a numeração interna, então "Fonte 1" no meio da resposta não aponta para nada. Prova: um check por código varre as respostas do conjunto de eval e falha se o padrão do rótulo interno aparece fora de uma citação.
+
+**Pergunta sobre evento datado leva a data atual no prompt.** Todo prompt que responde sobre fontes com data (agenda, reuniões, histórico, tarefas) inclui o dia da semana e a data de hoje, vindos do relógio do sistema no fuso do usuário. Porquê: o modelo não sabe que dia é hoje, e pergunta relativa ("esta semana", "ontem", "o que ficou em aberto") sem essa âncora é respondida com a janela errada, sem erro visível. Não confundir com a regra de resumo acima: o que foi dito dentro da fonte se resolve pela data do evento; a pergunta do usuário se resolve pela data de hoje. Prova: casos de eval com pergunta relativa e fontes dentro e fora da janela, rodados com a data fixada; a resposta só usa as de dentro.
 
 **Usar**
 

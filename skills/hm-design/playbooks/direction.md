@@ -106,6 +106,8 @@ Margem desigual entre header e content, ou conteúdo espremido por `maxWidth` in
 
 - **Margem de página é token, nunca número na tela.** Laterais, topo, base, largura máxima (quando existe) e altura da faixa de título vivem no DS, e um único contêiner de página os aplica, com ou sem rolagem. Página nova nasce dentro desse contêiner. Porquê: número copiado à mão em cada tela diverge alguns pontos de página para página, e o dono vê no olho antes de qualquer régua. Prova: busca no código não acha padding de página literal fora do contêiner, e a régua mede a primeira linha de texto de toda página na mesma faixa, com tolerância de 1 pt ([review §2](review.md)).
 
+- **Centralizado se ancora no contêiner visual a que pertence, nunca na janela.** Aviso flutuante, estado vazio, spinner ou caixa que fala do conteúdo se centra no painel de conteúdo; só o que pertence à janela inteira se centra nela (o scrim de uma camada por cima cobre a janela, a caixa segue o painel a que responde, ver §11b2). Porquê: com barra lateral ou painel aberto, o centro da janela não é o centro do painel, e o elemento parece deslocado sobre o conteúdo. Prova: na captura, medir o centro do elemento e o centro do contêiner, com diferença de no máximo 1 pt, com a barra lateral aberta e recolhida; conferir no olho não vale.
+
 ## 10. Inline styles vs Tailwind (regra técnica: Tailwind v4 com Turbopack)
 
 Tailwind v4 com Turbopack não resolve classes arbitrárias/customizadas confiavelmente (`bg-petrol-bright`, `rounded-card`, `text-text-primary` falharam em produção num SaaS de cliente: design saiu genérico e quebrado). Regra:
