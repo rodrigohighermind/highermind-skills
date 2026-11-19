@@ -207,6 +207,11 @@ grep -nE 'db\.delete\(|TRUNCATE|DROP |DELETE FROM|CASCADE|deleteMany|\.destroy\(
 | Criptografado | Em repouso e em trânsito quando sai da máquina |
 | Off-site | Cópia geográfica separada pra dado que importa (S3 outra região, git remoto privado) |
 | Testado | Já restaurou de verdade? Se não, não é backup, é esperança |
+| Completo | Cobre tudo que não é re-criável, não só o banco: inventário escrito do que entra e do que fica de fora, com o motivo (mídia pesada re-obtível, cache, derivado) |
+| Selado | Manifest com tamanho ou checksum de cada item, conferido antes de gravar o marcador de completo. Geração sem marcador não conta como backup e não entra na rotação como válida |
+| Visível | Data e resultado do último backup aparecem para quem usa o produto, não só em log |
+
+**Backup do sistema não é premissa.** Produto que guarda dado do usuário não assume que a máquina tem backup: confere se existe ou faz o próprio. Porque a única cópia some sem aviso e ninguém olha até precisar. Prova: listar onde está a segunda cópia de cada dado não re-criável e a data dela.
 
 Patterns por nível:
 
@@ -236,6 +241,8 @@ psql restore_drill -c "SELECT count(*) FROM <tabela_core>;"  # comparar com prod
 sqlite3 /tmp/drill.sqlite ".restore '~/.app/backups/db-<ts>.sqlite'"
 sqlite3 /tmp/drill.sqlite "PRAGMA integrity_check; SELECT count(*) FROM <tabela_core>;"
 ```
+
+O drill roda sobre o backup dos dados reais, não de uma fixture, e compara conteúdo: `integrity_check` no banco restaurado e arquivos conferidos byte a byte ou por checksum contra a origem. Contagem igual não prova conteúdo igual.
 
 Registrar data do último drill. Multi-user/produção: drill completo ao menos 1x/ano, cenário "disco morto" obrigatório no plano.
 

@@ -41,6 +41,7 @@ Comunicação: sempre separar "espaço liberado dentro do Docker" de "espaço de
 ## Observabilidade mínima de qualquer serviço operado
 
 - Logs estruturados (JSON por linha) com contexto suficiente pra debugar, sem secret/token/PII. Rotação por tamanho ou dia.
+- **Todo arquivo que cresce sozinho tem teto.** Log, cache, fila, histórico e gerações de backup levam limite de tamanho ou idade e rotação automática, definidos quando o arquivo nasce. Porque crescimento sem limite só aparece quando o disco enche. Arquivo mantido aberto por outro processo (gerenciador de serviços, processo filho) rotaciona por copiar e esvaziar, não por renomear: quem segura o descritor continuaria escrevendo no arquivo antigo. Prova: listar os arquivos que o serviço escreve, o teto de cada um, e forçar uma rotação conferindo que o processo vivo segue escrevendo no arquivo novo.
 - Health endpoint que verifica dependências reais; monitorável de fora.
 - Erro de produção chega em alguém (alerta, email, canal); não morre em arquivo de log que ninguém lê.
 - Jobs agendados (launchd/cron) logam cada run com resultado; job que falha silenciosamente por semanas é incidente em câmera lenta. Verificação: data do último log de sucesso, não existência do plist.

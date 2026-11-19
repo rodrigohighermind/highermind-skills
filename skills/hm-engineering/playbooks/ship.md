@@ -146,7 +146,7 @@ Responsabilidade do Dev Team, nunca do Owner. Não é "build compila": é dirigi
 - **Mobile**: media queries <920px e <540px, touch targets >=44px, font-size >=16px em input iOS (zoom), sem scroll horizontal.
 - **LLM-app**: conversa 50+ turns não quebra; refresh duplo não cobra 2x; key trocada via UI vale sem restart; custo por sessão conhecido.
 - **Concorrência**: 2 abas simultâneas não colidem; click duplo em mutação protegido; write race com transaction + unique index.
-- **Dados**: operação destrutiva confirma; backup automático em momento chave; dado persiste entre restarts.
+- **Dados**: operação destrutiva confirma; backup automático em momento chave; dado persiste entre restarts. Produto que guarda dado do usuário só fecha com backup e restauração provados nos dados reais e com teto em todo arquivo que cresce sozinho (ver [data-integrity](data-integrity.md) · Backup e Restore testado; [operate](operate.md) · Observabilidade mínima).
 
 Smoke que escreve em dado real limpa o que criou: marcador próprio nos registros de smoke e remoção por id exato ao final, conferida por `SELECT`.
 
