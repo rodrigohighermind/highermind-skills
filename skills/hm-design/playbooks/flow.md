@@ -58,6 +58,8 @@ Ordem importa. Decisão-chave primeiro, detalhe depois. Escopo grande antes de e
 
 A navegação reflete o modelo mental do usuário, não o schema do banco. Se explicar o fluxo exige manual, usuário comum não atravessa.
 
+**Toda área tem um lugar antes de existir.** Feature nova decide onde mora: operação diária (menu principal), consulta (alcançada pelo dado que a resume e pela busca) ou configuração (Ajustes, agrupada por tema, porque se mexe uma vez). O menu principal só tem o dia a dia, na ordem da jornada do usuário, nunca na ordem em que as features foram construídas. Por quê: cada item de uso raro no menu custa atenção em todo uso diário, e menu enxuto é feature, não acabamento. Prova: para cada item do menu, dizer com que frequência o usuário típico o abre; item que não é de uso diário sai do menu, e toda rota antiga que mudou de lugar redireciona para o novo.
+
 ## 5. Reversibilidade
 
 O usuário precisa saber: posso desfazer isso?

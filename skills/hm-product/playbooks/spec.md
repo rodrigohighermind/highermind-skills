@@ -68,6 +68,8 @@ Mapear todos os aplicáveis. Estado não mapeado na spec é gap que o Dev Team v
 
 Agent-first se aplica aqui: antes de especificar tela para um estado, perguntar se o agente resolve via conversa. UI é visibilidade e override, não o caminho primário.
 
+Quando a feature ganha tela, a spec diz onde ela mora: operação diária, consulta ou configuração. Feature que vira item de menu sem essa decisão polui a navegação do dia a dia. Regra e prova em `hm-design/playbooks/flow.md` §4.
+
 ### 5. Constraints
 
 Produto, dados, segurança e custo. Exemplos do tipo de constraint que pertence à spec:
