@@ -104,6 +104,8 @@ O design system do projeto é a fonte dos tokens: paleta semântica (fundo, supe
 
 Margem desigual entre header e content, ou conteúdo espremido por `maxWidth` inventada, é reprovação direta. Exemplo: um `max-width` sem `margin: 0 auto` enfiado no app shell gera uma borda direita gigante; se o DS não usa max-width, o conteúdo vai direto no container com padding simétrico.
 
+- **Margem de página é token, nunca número na tela.** Laterais, topo, base, largura máxima (quando existe) e altura da faixa de título vivem no DS, e um único contêiner de página os aplica, com ou sem rolagem. Página nova nasce dentro desse contêiner. Porquê: número copiado à mão em cada tela diverge alguns pontos de página para página, e o dono vê no olho antes de qualquer régua. Prova: busca no código não acha padding de página literal fora do contêiner, e a régua mede a primeira linha de texto de toda página na mesma faixa, com tolerância de 1 pt ([review §2](review.md)).
+
 ## 10. Inline styles vs Tailwind (regra técnica: Tailwind v4 com Turbopack)
 
 Tailwind v4 com Turbopack não resolve classes arbitrárias/customizadas confiavelmente (`bg-petrol-bright`, `rounded-card`, `text-text-primary` falharam em produção num SaaS de cliente: design saiu genérico e quebrado). Regra:
