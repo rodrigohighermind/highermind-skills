@@ -203,7 +203,8 @@ await runAgentLoop({
 
 Formatar, pontuar, quebrar em lista ou estruturar texto que é do usuário (ditado, transcrição, dado clínico, documento legal): o modelo **não escreve o texto de saída**.
 - **Classificar:** a decisão (vira lista? é título? quebra aqui?) é sim/não ou escolha curta, lida do logit ou de saída restrita, com o prefixo few-shot em cache.
-- **Escolher entre candidatos:** o código gera as variantes com as **mesmas palavras** e o modelo escolhe por verossimilhança. Decisões fatoradas em janelas curtas, não o texto inteiro de uma vez.
+- **Escolher entre candidatos:** o código gera as variantes com as **mesmas palavras** e o modelo escolhe. Decisões fatoradas em janelas curtas, não o texto inteiro de uma vez.
+- **Pontuar a resposta à pergunta da decisão, não a fluência do resultado.** Verossimilhança do texto renderizado prefere o candidato que soa bem, não o certo. Perguntar a decisão exata ("qual é o primeiro item?") com few-shot próprio, pontuar só respostas feitas das palavras originais e somar um voto estrutural determinístico quando existir (classe fechada de palavras, pontuação). Prova: acerto e falso positivo no conjunto, contra o pontuador por fluência. Alternativas medidas e rejeitadas (tagger do sistema, mais exemplos) ficam registradas com o número que as rejeitou.
 - **Verificador de alinhamento:** compara entrada e saída palavra a palavra; só some ou muda o que a regra declarou (por exemplo, hesitação). Qualquer outra diferença descarta a transformação e devolve o original.
 Texto livre de modelo pequeno troca palavra em silêncio, e o verificador é o que transforma isso em erro visível. Vale para resumo em domínio de alto risco: o resumo cita, nunca reescreve o dado.
 

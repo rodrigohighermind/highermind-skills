@@ -48,6 +48,7 @@ Finding visual sem screenshot é hipótese. Disciplina de captura:
 - **Par entrega × referência quando existe referência.** Os dois screenshots lado a lado, mesmo viewport, mesma tela. A diferença apontada é o finding.
 - **Estados capturados, não descritos.** Loading, empty e error são screenshots próprios; forçar o estado (rede lenta, dado zerado, erro provocado) faz parte do review.
 - **Console junto.** Print ou log do console do fluxo revisado. console.error novo é FAIL objetivo.
+- **Captura sem roubar a máquina.** Em máquina que o dono está usando, a janela de QA só fica em primeiro plano o tempo da captura e fecha logo depois; preferências e estado de QA vivem em domínio separado do app de uso. Janela de QA esquecida na frente rouba o foco e recebe o que o dono digita. Prova: depois da rodada de QA, nenhuma janela de QA aberta e as preferências do app de uso intactas.
 
 O que não foi visto renderizado não recebe veredito: recebe NOT_VERIFIED com o motivo (ferramenta indisponível, estado não reproduzível).
 
@@ -135,6 +136,7 @@ Render de app nativo não passa por browser. Receita:
 - Conferir o SDK gravado no binário (`otool -l` em `LC_BUILD_VERSION`, `sdk` maior ou igual ao sistema alvo): SDK antigo desenha chrome legado.
 - **Tema do app contra tema do sistema.** Controle nativo (menu suspenso, `NSPopUpButton`, checkbox, `Picker` em estilo menu) herda a aparência da **janela**, não o tema que o conteúdo desenha. App com tema próprio claro em sistema escuro (ou o contrário) deixa o controle invisível. Correção: fixar a aparência da janela no tema do app (`preferredColorScheme`/`NSAppearance`) ou usar componente próprio que desenha com os tokens do app. A revisão roda com o **sistema** nos dois modos, para cada tema do app.
 - **Formatação por locale explícito.** Todo formatter de data, número e moeda exibido leva o locale do produto (ou formato numérico fixo). Formatter sem locale segue o do processo e solta mês em inglês num app em português. A varredura procura formatter criado sem locale.
+- **Alinhar ao texto, não à decoração.** Controle ao lado de rótulo (botão junto a abas, ícone junto a título) alinha pelo texto do rótulo, nunca pelo bloco que inclui sublinhado, indicador ou padding de seleção: o deslocamento a compensar é a soma do gap e da decoração. Alinhar ao bloco faz o controle encostar na linha ou flutuar fora do eixo do texto. Prova: captura em 2x com a linha de base do texto e o centro do controle medidos na mesma régua. Estilo nativo de menu ou botão pode descartar o fundo do rótulo customizado; conferir no render, não no código.
 - Conferir que o `minSize` declarado é o tamanho que o conteúdo realmente aceita: abaixo dele nada corta, nada sobrepõe, nada some.
 
 ## 7. Os sete eixos de avaliação
