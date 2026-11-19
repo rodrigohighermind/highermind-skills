@@ -69,6 +69,15 @@ Teste: o produto faz o trabalho ou ajuda alguém a fazer? Se o usuário permanec
 - Red: produto exige que o usuário seja expert do domínio para operar.
 - Green: sistema que toma iniciativa, categoriza, alerta, projeta, executa e entrega o resultado, com controle humano proporcional ao risco.
 
+**Organização automática só liga com quatro garantias.** Quando o produto passa a arquivar, rotular ou agrupar sozinho (pasta, projeto, cliente, categoria):
+
+1. **Evidência legível na tela.** Cada decisão mostra o motivo que o usuário reconhece (nome no título, participante já visto naquele grupo), não uma confiança opaca. Evidência fraca ou empate vira sugestão, não ação.
+2. **Desfazer imediato.** Um clique devolve ao estado anterior e não exige reorganizar nada.
+3. **Avaliação nos dados reais do usuário antes de ligar.** Leave-one-out: esconder o rótulo de cada item já organizado e ver se o sistema o recoloca no mesmo lugar, mais casos adversos (item interno, contato novo, empate).
+4. **Exclusão de sinal onipresente.** Quem ou o que aparece em todo contexto (o próprio time do usuário, aprendido do histórico) não conta como evidência de grupo nenhum.
+
+Um eixo visível por vez: a organização responde a uma pergunta (com quem, para quê), não a várias taxonomias sobrepostas. Por quê: automação que erra sem explicar e sem volta faz o usuário desligar e voltar a operar à mão. Prova: o leave-one-out acerta nos dados reais e os adversos caem em sugestão, não em arquivamento errado.
+
 ### Outcome > Ferramenta
 
 Teste: o que o cliente compra é resultado ou acesso? "Visibilidade de gastos" é ferramenta. "Saúde financeira protegida e crescendo" é outcome. Outcome aparece em comportamento, tempo, dinheiro, risco ou capacidade. "Visibilidade" sozinha não é outcome.
