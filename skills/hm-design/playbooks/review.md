@@ -122,6 +122,7 @@ Além de contraste, foco visível e teclado:
 - **Autenticação acessível (3.3.8):** sem teste cognitivo; colar senha e gerenciador de senha funcionam.
 - **Ajuda consistente (3.2.6):** suporte e ajuda no mesmo lugar em todas as telas.
 - **Status anunciado:** mudança de estado relevante (salvo, erro, contador) chega ao leitor de tela via `aria-live`.
+- **Controle só de ícone tem nome explícito (4.1.2):** botão ou menu sem texto visível recebe nome acessível no idioma do produto (`aria-label` na web, `accessibilityLabel` em SwiftUI). Tooltip não é nome: em app nativo de desktop, `.help` só desenha a dica, e o leitor de tela anuncia o identificador do símbolo, em inglês e sem sentido para o usuário. O mecanismo é um modificador único que aplica dica e nome juntos, usado nos componentes reaproveitados, para que o caso novo já nasça nomeado. Prova: varredura estática no gate do projeto, que delimita cada controle até o seu estilo e falha em ícone sem nome. Revisão manual não segura essa classe, porque o defeito é invisível no render.
 
 ## 6c. App nativo (macOS)
 
