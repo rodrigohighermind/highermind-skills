@@ -60,6 +60,8 @@ A navegação reflete o modelo mental do usuário, não o schema do banco. Se ex
 
 **Toda área tem um lugar antes de existir.** Feature nova decide onde mora: operação diária (menu principal), consulta (alcançada pelo dado que a resume e pela busca) ou configuração (Ajustes, agrupada por tema, porque se mexe uma vez). O menu principal só tem o dia a dia, na ordem da jornada do usuário, nunca na ordem em que as features foram construídas. Por quê: cada item de uso raro no menu custa atenção em todo uso diário, e menu enxuto é feature, não acabamento. Prova: para cada item do menu, dizer com que frequência o usuário típico o abre; item que não é de uso diário sai do menu, e toda rota antiga que mudou de lugar redireciona para o novo.
 
+**Paridade copia comportamento, não rótulo nem ordem.** Clonar um produto de referência traz o que ele faz; o nome de cada item e a ordem da navegação vêm de quem usa o nosso produto (ordem pela frequência de uso dele, nome pelo que o item faz). Por quê: rótulo herdado carrega o vocabulário e a jornada de outro público, e item que o usuário não entende é ruído permanente no menu. Prova: para cada item de navegação, o usuário diz para que serve só pelo nome; se não diz, é defeito de nome ou de propósito, e a correção é renomear pelo que faz, explicar no estado vazio ou tirar da navegação.
+
 ## 5. Reversibilidade
 
 O usuário precisa saber: posso desfazer isso?
