@@ -77,6 +77,7 @@ Seção 4 inteira, abaixo.
 - ALERTA: `.env` copiado pro bundle (`Resources/`) vaza secret se o app for distribuído. Documentar.
 - Native modules (sqlite, sharp) com rebuild de ABI correto pro Electron; versão do Electron sem CVE HIGH.
 - Bundle id (macOS) / `setAppUserModelId` (Windows) corretos.
+- Smoke ou QA com input sintético (clique, arraste, tecla) checa antes se a tela está bloqueada; bloqueada, a interação é `NOT_VERIFIED`, não resultado. Regra em `hm-design/playbooks/review.md` §3.
 
 ### Mobile (Expo/RN)
 

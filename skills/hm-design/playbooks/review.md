@@ -49,6 +49,7 @@ Finding visual sem screenshot é hipótese. Disciplina de captura:
 - **Estados capturados, não descritos.** Loading, empty e error são screenshots próprios; forçar o estado (rede lenta, dado zerado, erro provocado) faz parte do review.
 - **Console junto.** Print ou log do console do fluxo revisado. console.error novo é FAIL objetivo.
 - **Captura sem roubar a máquina.** Em máquina que o dono está usando, a janela de QA só fica em primeiro plano o tempo da captura e fecha logo depois; preferências e estado de QA vivem em domínio separado do app de uso. Janela de QA esquecida na frente rouba o foco e recebe o que o dono digita. Prova: depois da rodada de QA, nenhuma janela de QA aberta e as preferências do app de uso intactas.
+- **Input sintético só com a sessão desbloqueada.** Todo roteiro de QA que envia clique, arraste ou tecla sintética confere antes de cada bloco de interação se a tela está bloqueada (no macOS, `CGSSessionScreenIsLocked` em `CGSessionCopyCurrentDictionary()`). Bloqueada: a interação é `NOT_VERIFIED` com o motivo, e o roteiro segue só com o que não depende de input. Porquê: com a tela bloqueada os eventos vão para a tela de bloqueio, mas a captura por janela continua devolvendo imagem, então o roteiro termina sem erro e conclui sobre uma interação que nunca aconteceu. Prova: rodar o roteiro com a tela bloqueada e ver o relatório marcar as interações como `NOT_VERIFIED`, nunca PASS nem FAIL.
 
 O que não foi visto renderizado não recebe veredito: recebe NOT_VERIFIED com o motivo (ferramenta indisponível, estado não reproduzível).
 
