@@ -55,7 +55,7 @@ O que não foi visto renderizado não recebe veredito: recebe NOT_VERIFIED com o
 
 ## 4. Como executar
 
-1. **Levantar a referência.** DS, mock, screen do bundle ou direção aprovada. Sem referência nenhuma, o review compara contra a tese visual e a barra (§5), e diz explicitamente que rodou sem referência.
+1. **Levantar a referência.** DS, mock, screen do bundle ou direção aprovada. Sem referência nenhuma, o review compara contra a tese visual e a barra (§5), e diz explicitamente que rodou sem referência. Tela de tipo novo no produto (conversa, lista, detalhe, painel, formulário, ajustes) entra com a referência daquele tipo e o inventário marcado ([direção §3c](direction.md)); sem eles, `NOT_VERIFIED`.
 2. **Rodar o produto de verdade.** Build local, rota real, dados reais/representativos. Review de código-fonte sem render não é review visual.
 3. **Percorrer a ação primária inteira** capturando os viewports e estados da cobertura mínima (§6).
 4. **Comparar lado a lado** (§2) e varrer o checklist de reprovação (§8).
@@ -175,6 +175,9 @@ Qualquer item presente = FAIL direto, com localizador:
 - [ ] qualquer defeito da classe de acabamento (§6a)
 - [ ] campo que afirma mais do que o dado sabe: default plausível no lugar de desconhecido, progresso falso, ação ativa sem objeto (§6a3)
 - [ ] movimento ou estado aprovado sem a prova da linha correspondente em §6a
+- [ ] texto corrido maior que o título da página, ou parágrafo longo dentro de cartão com borda ([direção §7](direction.md))
+- [ ] resposta de agente sem ação de copiar ou sem histórico persistente ([direção §6](direction.md))
+- [ ] palavra abreviada onde cabe por extenso (dia, mês, unidade de tempo)
 
 Estas rejeições são profile da casa, não lei universal: em trabalho pra outra marca, o brand context do cliente substitui o taste, a barra de craft e o pixel perfect 1 permanecem.
 

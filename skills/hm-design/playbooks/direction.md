@@ -46,6 +46,18 @@ Porquê: desenhar de memória entrega o esqueleto da categoria sem o acabamento 
 
 Prova: a página da direção cita as referências vistas, com as capturas, e traz o inventário com cada item marcado como coberto ou cortado. Direção sem essa seção é `NOT_VERIFIED`.
 
+## 3c. Referência por tipo de tela
+
+O passo de ver antes de desenhar vale por tipo de tela, não uma vez por produto. Antes de construir conversa com agente, lista, detalhe, painel, formulário ou tela de ajustes:
+
+1. **Abrir o melhor exemplo daquele tipo.** De preferência o produto que o usuário já usa todo dia para aquilo (para conversa, os apps de assistente que ele usa). Captura real, não lembrança.
+2. **Escrever o inventário do tipo:** hierarquia tipográfica (o que é título, o que é leitura, o que é apoio), ações por item (copiar, refazer, editar), estados, e o que persiste (histórico, rascunho, posição).
+3. **Cobrir ou cortar**, item a item, como em §3b.
+
+Porquê: a direção aprovada define a identidade, não o que cada tipo de tela precisa ter. Tela nova desenhada só a partir dos tokens sai com a identidade certa e sem as ações e a hierarquia que o usuário espera daquele tipo, e a mesma reprovação se repete a cada tela.
+
+Prova: cada tela nova entra no review com a referência do tipo e o inventário marcado ([review §4](review.md)). Sem isso, a tela é `NOT_VERIFIED`.
+
 ## 4. O que a direção precisa cravar
 
 Uma direção pronta declara, no mínimo:
@@ -86,6 +98,7 @@ Decoração sem propósito reprova. Complexidade sem clareza reprova. Se um elem
 - A conversa é a interface primária. Formulário é exceção, não regra.
 - Antes de aprovar uma tela com formulário, perguntar: "o agente não deveria fazer isso?"
 - Dashboard existe pra mostrar o que o agente fez ou está fazendo, não pra o usuário operar.
+- **Resposta de agente nasce completa.** Desde a primeira versão: texto no tamanho de leitura da página, em parágrafos, ação de copiar em cada resposta, histórico que sobrevive a fechar o app e um jeito de começar conversa nova. Porquê: o usuário compara com o assistente que usa todo dia, e resposta sem copiar ou que some ao fechar lê como protótipo. Prova: copiar uma resposta e colar fora do app; fechar, reabrir e achar a conversa.
 
 Produto puramente ferramenta/website sem agente ignora este bloco.
 
@@ -96,6 +109,9 @@ Produto puramente ferramenta/website sem agente ignora este bloco.
 - Corpo: contraste suficiente sem branco puro sobre preto puro.
 - Set de fontes definido na direção do produto: um papel de display, um de corpo e, se houver dado denso, um utilitário.
 - Texto cortado, truncation não tratada ou orphan feio em heading reprova em review.
+- **Texto corrido nunca é maior que o título da página.** Conteúdo gerado ou longo (resposta de agente, análise, descrição) usa o papel de corpo, no tamanho de leitura; fonte de display não é fonte de leitura. Porquê: corpo maior que o título inverte a hierarquia e a página perde o topo. Prova: na captura, medir a altura da maiúscula do título e do texto corrido; o título vence em toda tela.
+- **Texto longo não mora em cartão com borda.** Parágrafo vira coluna editorial: rótulo, título curto, texto. Cartão é para objeto que se manipula, não para leitura.
+- **Insight é achado, não parágrafo.** O achado em poucas palavras, como título, e no máximo duas frases de apoio. O que passa disso vai para o detalhe.
 
 ## 7b. Peso tipográfico entre motores
 

@@ -262,6 +262,13 @@ Registrar data do último drill. Multi-user/produção: drill completo ao menos 
 - Idempotency key em operação disparada externamente (webhook, payment, email).
 - JSON persistido tem `schemaVersion` + `safeParse` (Zod/Pydantic) em toda leitura. Cast cego de `JSON.parse` é corrupção esperando data pra aparecer. Migração v1→v2 documentada e app lê ambas durante a transição.
 
+## Ingestão de fonte externa
+
+- **A ingestão leva tudo que a fonte entrega.** O payload bruto fica guardado, e todo campo dele é mapeado para o modelo ou listado como ignorado, com motivo. Campo que só existe no bruto também conta.
+- **Um teste lista os campos do bruto sem destino.** Ele compara as chaves de uma amostra real do bruto com o mapeamento e falha quando aparece chave que não está mapeada nem na lista de ignorados.
+
+Porquê: o que a ingestão não mapeou não existe para o resto do produto, e resumo, tela e agente passam a afirmar que a fonte não tem o dado. Prova: o teste roda sobre payload real de cada fonte, e um campo novo plantado no bruto o faz falhar.
+
 ## Disaster recovery (multi-user / produção pública)
 
 | Métrica | Pergunta | Típico |
