@@ -60,6 +60,8 @@ Palavra existe para facilitar o uso. Nomear pelo que o usuário entende, não pe
 
 **Palavra por extenso, e a regra vira régua.** Dia, mês, unidade de tempo e termo comum saem inteiros; só unidade e sigla consagradas ficam curtas. Falta de espaço se resolve no layout (tirar a informação que o cabeçalho já dá, quebrar a linha, outra densidade), nunca cortando a palavra. Toda regra de texto do produto vira varredura estática no gate do projeto, cobrindo todas as fontes de texto e não só as strings da tela: padrão de formatador de data e número, lista escrita à mão, unidade dentro de frase e o prompt do LLM, cujo exemplo o modelo reproduz no texto gerado (playbook `llm` de `hm-engineering`, §4). Citação intencional leva marcador explícito de exceção. Porquê: regra de texto conferida só no olho volta pela fonte que ninguém leu. Prova: a varredura falha com um caso plantado de cada fonte e passa no repo limpo.
 
+**Valor interno nunca entra cru numa frase.** Estado, enum ou identificador que compõe texto de interface passa por um único mapa de rótulos legíveis, escrito para caber na frase que o recebe (concordância, preposição, tempo verbal); nenhuma tela interpola o valor do código. Porquê: o nome técnico do estado e a palavra que o usuário lê são coisas diferentes, e a junção solta produz frase quebrada ("em construindo"). Prova: um teste percorre todos os casos do enum, gera a frase de cada um e confere o texto final, e falha quando um caso novo entra sem rótulo.
+
 ## Render
 
 Interface que não foi vista não foi revisada. Para app local, [scripts/with_server.py](scripts/with_server.py) sobe o servidor e roda um script Playwright (rodar `--help` primeiro, tratar como caixa-preta):
