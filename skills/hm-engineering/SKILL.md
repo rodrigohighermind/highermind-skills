@@ -57,6 +57,7 @@ Proporcional ao risco. Não negociável onde importa:
 6. Sem reprodução automatizável: registrar o motivo e a evidência alternativa. A lacuna fica `NOT_VERIFIED`.
 7. Código já escrito: preservar e provar que a regressão falha na versão anterior e passa na corrigida.
 8. Teste existente não muda para o código passar. Só muda quando a spec mudou, e isso vai declarado no fechamento.
+9. Teste que muda estado global do processo (variável de ambiente, diretório corrente, singleton) entra na única suíte serializada do projeto que já mexe nisso, ou recebe o valor por parâmetro; nunca numa suíte nova que roda em paralelo. Porquê: o runner paraleliza suítes e o vizinho lê o valor trocado, falhando longe da causa. Prova: a suíte inteira com paralelismo ligado passa repetidas vezes.
 
 ## Gate
 
