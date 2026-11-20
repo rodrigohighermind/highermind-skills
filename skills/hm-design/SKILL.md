@@ -20,6 +20,7 @@ Transformar a tese do produto em experiência compreensível, distinta e impleme
 1. Se o HM Orbit não está no contexto, ler [references/orbit.md](references/orbit.md).
 2. Ler o profile da casa em [references/profile.md](references/profile.md). Brief do Owner vence o profile; profile vence default de IA.
 3. Ler o real antes de propor: rotas, componentes, tokens, screenshots e o design system existente. Com DS ou referência na mão, copiar o uso exato, nunca inventar wrapper.
+3b. **Reler o que o dono já definiu** sobre aquele conteúdo e o destino dele (brief, spec, `MEMORY.md` do projeto, conversa). Requisito dito uma vez vale para todas as telas seguintes e vai para o `MEMORY.md` no momento em que foi dito. Conteúdo que será enviado a produto de terceiros segue a estrutura e o vocabulário daquele produto ([direction §3c](playbooks/direction.md)).
 4. **Tela de tipo novo no produto** (conversa, lista, detalhe, painel, formulário, ajustes): antes de construir, abrir em captura real o melhor exemplo daquele tipo e escrever o inventário (hierarquia tipográfica, ações por item, estados, o que persiste). Vale a cada tipo novo, não só na direção: a identidade aprovada não diz o que cada tipo de tela precisa ter ([direction §3c](playbooks/direction.md)). Se um produto da casa já tem aquele tipo aprovado pelo dono, ele é a referência e o ponto de partida é a medida do código dele ([direction §3d](playbooks/direction.md)).
 5. Buscar em [references/incidents.md](references/incidents.md) por mídia, fluxo e falha.
 6. Carregar o playbook do modo ativo, e só ele.

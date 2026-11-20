@@ -181,6 +181,8 @@ Qualquer item presente = FAIL direto, com localizador:
 - [ ] texto corrido maior que o título da página, ou parágrafo longo dentro de cartão com borda ([direção §7](direction.md))
 - [ ] resposta de agente sem ação de copiar ou sem histórico persistente ([direção §6](direction.md))
 - [ ] palavra abreviada onde cabe por extenso (dia, mês, unidade de tempo)
+- [ ] conteúdo estruturado todo em tinta e cinza, sem cor por categoria do domínio, ou cor de categoria sem ícone e nome ([direção §8](direction.md))
+- [ ] conteúdo que vai para produto de terceiros com estrutura ou vocabulário diferentes dos do destino ([direção §3c](direction.md))
 
 Estas rejeições são profile da casa, não lei universal: em trabalho pra outra marca, o brand context do cliente substitui o taste, a barra de craft e o pixel perfect 1 permanecem.
 

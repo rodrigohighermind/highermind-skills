@@ -58,6 +58,8 @@ Porquê: a direção aprovada define a identidade, não o que cada tipo de tela 
 
 Prova: cada tela nova entra no review com a referência do tipo e o inventário marcado ([review §4](review.md)). Sem isso, a tela é `NOT_VERIFIED`.
 
+**Conteúdo com destino em produto de terceiros.** Quando o que a tela monta vai ser enviado a um produto que o usuário já usa (relógio, calendário, banco, editor), esse produto é a referência do tipo: estrutura, ordem e vocabulário da tela seguem os dele, porque é lá que o usuário vai ver o resultado. Porquê: tela com nomes e estrutura próprios obriga o usuário a traduzir de cabeça, e o que chega ao destino não bate com o que ele aprovou. Prova: no review, cada bloco e termo da tela ao lado do equivalente no produto de destino; termo sem equivalente é divergência declarada.
+
 ## 3d. Padrão aprovado vira padrão da casa
 
 Tipo de tela que um produto da casa já resolveu e o dono aprovou é a referência daquele tipo para os próximos (§3c, passo 1). O produto novo parte da medida do código de origem (geometria, papéis tipográficos, transição), não de um redesenho. Divergir é decisão declarada, com o motivo.
@@ -135,6 +137,8 @@ Clonando referência web (Chromium, Electron) num app nativo, o mesmo `font-weig
 ## 8. Tokens
 
 O design system do projeto é a fonte dos tokens: paleta semântica (fundo, superfície, texto, acento, estados), escala tipográfica, espaçamento, raio, elevação e motion. Status semânticos (saudável, atenção, em risco, crítico, bloqueado, concluído) têm cor própria e nunca dependem só da cor para serem lidos. Projeto sem DS nasce com tokens nomeados na direção (seção 12), não com hex espalhado pelo código.
+
+**Paleta sóbria não é tela monocromática.** Tela de conteúdo estruturado (etapas, plano, categorias, estados, tipos de item) dá a cada categoria do domínio uma cor própria, como token nomeado do DS, sempre junto com ícone e nome: a mesma categoria tem a mesma cor, o mesmo ícone e o mesmo nome em toda parte (lista, barra de perfil, legenda, pílula de estado). Os números principais ganham bloco próprio, com ícone e rótulo acima do valor. Isso não contradiz a reprovação de pictograma colorido (§5): o ícone vem do conjunto real da plataforma e a cor vem dos tokens, nunca de emoji. Porquê: tudo em tinta e cinza achata a estrutura, o usuário não distingue as partes num relance e o dono lê a tela como pobre. Prova: na captura, cada categoria se identifica sem ler o texto e sem depender só da cor (ícone e nome presentes); busca no código não acha hex de categoria fora do DS.
 
 ## 9. Layout: full-width e padding simétrico
 
