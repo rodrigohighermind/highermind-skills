@@ -47,3 +47,23 @@ enum TitleBand {
             && point.x > start && point.x < windowSize.width - trailingReserve
     }
 }
+
+/// Double-click zoom as a pure decision: maximize to the usable screen, or go back. Going back uses the size the
+/// window had before maximizing, saved across launches; with nothing saved (the window was relaunched maximized,
+/// or maximized by another path) it falls back to the default size centered, never to "nothing happens".
+enum ZoomToggle {
+    static func isMaximized(_ frame: CGRect, in screen: CGRect) -> Bool {
+        abs(frame.minX - screen.minX) < 2 && abs(frame.maxY - screen.maxY) < 2
+            && abs(frame.width - screen.width) < 2 && abs(frame.height - screen.height) < 2
+    }
+
+    static func next(frame: CGRect, screen: CGRect, previous: CGRect?) -> CGRect {
+        guard isMaximized(frame, in: screen) else { return screen }
+        if let previous, !isMaximized(previous, in: screen), screen.contains(previous.insetBy(dx: 1, dy: 1)) {
+            return previous
+        }
+        let size = CGSize(width: min(WindowLayout.defaultSize.width, screen.width),
+                          height: min(WindowLayout.defaultSize.height, screen.height))
+        return CGRect(x: screen.midX - size.width / 2, y: screen.midY - size.height / 2, width: size.width, height: size.height)
+    }
+}

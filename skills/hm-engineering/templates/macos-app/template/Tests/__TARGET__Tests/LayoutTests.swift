@@ -33,6 +33,16 @@ import Testing
         #expect(!TitleBand.contains(CGPoint(x: 1040 - TrafficLightLayout.trailingIconCenterFromEdge - 10, y: 700), windowSize: size))
     }
 
+    @Test func doubleClickAlwaysChangesTheSize() {
+        let screen = CGRect(x: 0, y: 0, width: 1440, height: 870)
+        let small = CGRect(x: 200, y: 75, width: 1040, height: 720)
+        #expect(ZoomToggle.next(frame: small, screen: screen, previous: nil) == screen)            // grows
+        #expect(ZoomToggle.next(frame: screen, screen: screen, previous: small) == small)          // back to what it was
+        let fallback = ZoomToggle.next(frame: screen, screen: screen, previous: nil)               // relaunched maximized
+        #expect(fallback != screen && fallback.width <= WindowLayout.defaultSize.width)
+        #expect(ZoomToggle.next(frame: screen, screen: screen, previous: screen) != screen)        // stale saved frame
+    }
+
     @MainActor @Test func menuBarCarriesTheEditShortcuts() {
         _ = NSApplication.shared
         MainMenu.install(appName: "Teste")

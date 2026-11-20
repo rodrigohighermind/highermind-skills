@@ -15,19 +15,20 @@ final class MainWindowController: NSObject, NSWindowDelegate {
     private var titleClickMonitor: Any?
     private var preZoomFrame: NSRect?
 
-    /// Maximize to the screen's usable area, or back to the size it had before. Explicit because AppKit's zoom only
-    /// restores when the frame equals its standard frame exactly, which a restored autosaved size can miss.
+    /// Maximize to the usable screen, or back. The size before maximizing survives relaunch; without it the window
+    /// returns to the default size centered, so a double-click always changes the size.
     private func toggleZoom(_ w: NSWindow) {
-        guard let target = w.screen?.visibleFrame else { return }
-        let atTarget = abs(w.frame.minX - target.minX) < 2 && abs(w.frame.maxY - target.maxY) < 2
-            && abs(w.frame.width - target.width) < 2
-        if atTarget, let prev = preZoomFrame {
-            preZoomFrame = nil
-            w.setFrame(prev, display: true, animate: true)
-        } else {
+        guard let screen = w.screen?.visibleFrame else { return }
+        let saved = UserDefaults.standard.string(forKey: "preZoomFrame").map(NSRectFromString)
+        let target = ZoomToggle.next(frame: w.frame, screen: screen, previous: preZoomFrame ?? saved)
+        if ZoomToggle.isMaximized(target, in: screen) {
             preZoomFrame = w.frame
-            w.setFrame(target, display: true, animate: true)
+            UserDefaults.standard.set(NSStringFromRect(w.frame), forKey: "preZoomFrame")
+        } else {
+            preZoomFrame = nil
+            UserDefaults.standard.removeObject(forKey: "preZoomFrame")
         }
+        w.setFrame(target, display: true, animate: true)
     }
 
     /// With a transparent title bar and content underneath, SwiftUI swallows the double-click the system uses to zoom.

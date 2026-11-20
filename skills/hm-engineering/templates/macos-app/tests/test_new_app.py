@@ -46,12 +46,12 @@ class CreateTest(unittest.TestCase):
         new_app.create("Comportamentos", "com.example.comportamentos", dest)
         src = "\n".join(f.read_text(encoding="utf-8") for f in (dest / "Sources").rglob("*.swift"))
         for symbol in ("NSApp.mainMenu = main", "#selector(NSText.paste(_:))", "MainMenu.install(",
-                       "enum TitleBand", "AppleActionOnDoubleClick", "addLocalMonitorForEvents(matching: .leftMouseDown)",
+                       "enum TitleBand", "enum ZoomToggle", "preZoomFrame", "AppleActionOnDoubleClick", "addLocalMonitorForEvents(matching: .leftMouseDown)",
                        "struct ClickableStyle", ".pointerStyle(enabled ? .link : nil)"):
             self.assertIn(symbol, src)
         self.assertNotIn(".buttonStyle(.plain)", src)
         tests = (dest / "Tests" / "ComportamentosTests" / "LayoutTests.swift").read_text(encoding="utf-8")
-        for name in ("doubleClickZoomsOnlyInTheFreeBandOfTheTitleBar", "menuBarCarriesTheEditShortcuts", "everyClickableUsesThePointerStyle"):
+        for name in ("doubleClickZoomsOnlyInTheFreeBandOfTheTitleBar", "doubleClickAlwaysChangesTheSize", "menuBarCarriesTheEditShortcuts", "everyClickableUsesThePointerStyle"):
             self.assertIn(name, tests)
 
     def test_existing_destination_is_refused_and_untouched(self) -> None:
