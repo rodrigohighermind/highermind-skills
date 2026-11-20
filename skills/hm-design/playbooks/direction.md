@@ -205,6 +205,7 @@ Vale para modal, sheet, dialog, popover e drawer.
 1. **Scrim e conteúdo são camadas separadas.** O scrim só faz fade (0,2 a 0,25 s, ease-in-out) e cobre a janela ou viewport inteira durante toda a transição. Nunca escala nem desliza: transform no conjunto scrim + caixa encolhe o scrim no meio da animação e expõe as bordas sem escurecer.
 2. **O conteúdo entra com mola suave:** escala 0,96 para 1, cerca de 8 px de deslocamento e opacidade. Sai mais rápido e mais simples: cerca de 0,14 s ease-in, opacidade e escala 0,98.
 3. **Reduce motion** (`prefers-reduced-motion` ou o ajuste do sistema): só fade.
+4. **Painel desenhado dentro da view** (menu ou seletor próprio, em vez do componente do sistema): nenhuma decoração do contêiner fica numa camada acima do conteúdo; a borda vai junto do preenchimento, no fundo (`.background`, não `.overlay`). Por quê: camada sobreposta ao contêiner cruza o painel aberto. Fechar ao clicar fora não é elemento clicável: observar o clique sem consumi-lo (monitor de evento local) e fechar quando ele não mudou o estado, nunca uma área de toque invisível, que engole o clique e ganha cursor de mão. Prova: render com o painel aberto por cima da borda do contêiner, e um clique fora que fecha o painel e ainda aciona o que foi clicado.
 
 ## 11c. Destino da direção
 

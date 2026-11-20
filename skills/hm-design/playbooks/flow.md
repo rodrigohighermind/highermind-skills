@@ -72,6 +72,8 @@ O usuário precisa saber: posso desfazer isso?
 
 **Anti-pattern:** confirmação em tudo. Vira ruído, o usuário clica sem ler, e a confirmação que importava perde o efeito.
 
+**Navegar nunca descarta trabalho.** Item de navegação (abrir, voltar, "novo", trocar de área) só muda o que se vê: trabalho em andamento (resposta de agente, processo, upload, rascunho) continua e fica alcançável pelo item, e descartar só acontece por ação explícita de parar ou cancelar. Por quê: navegação se clica sem ler consequência, e um reset compartilhado entre "começar do zero" e "cancelar" destrói trabalho em silêncio. Prova: ao criar ou trocar o que um item de navegação faz, um teste com trabalho em andamento (executor falso, nunca serviço real) aciona o item e confere que nada foi cancelado e que o resultado chegou ao lugar certo.
+
 ## 6. Recovery de erro
 
 Usuário errou ou sistema errou: o que acontece?
