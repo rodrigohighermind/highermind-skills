@@ -32,6 +32,20 @@ Referências são compressão de barra e taste, nunca pedido de cópia. O que ca
 
 Regra de comparação: nunca comparar com produtos medianos. Se a interface não impressiona alguém com gosto, reprovou.
 
+## 3b. Ver antes de desenhar
+
+Direção nova só se apresenta depois de três passos, nesta ordem:
+
+1. **Ver o produto-piso.** Se o brief cita um produto de referência de acabamento, abrir as capturas reais dele antes do primeiro traço. Lembrança do produto não conta.
+2. **Ver a categoria.** Capturas reais de pelo menos 5 produtos da categoria, lado a lado em folha de contato (a página pública de cada um na loja ou no site já traz as capturas oficiais). Escrever o inventário do que os melhores têm: marca, ícones, imagem ou arte de abertura, módulos da tela inicial.
+3. **Cobrir ou cortar.** A proposta só sai se cobrir esse inventário ou declarar, item a item, o que cortou e por quê.
+
+Mock de direção sem marca, sem ícones reais e sem arte que dê o tom é wireframe, não direção: ícone vem do conjunto real da plataforma, nunca de placeholder, e a arte de abertura já aparece na proposta.
+
+Porquê: desenhar de memória entrega o esqueleto da categoria sem o acabamento dela, e o dono lê a proposta como simples demais na primeira apresentação.
+
+Prova: a página da direção cita as referências vistas, com as capturas, e traz o inventário com cada item marcado como coberto ou cortado. Direção sem essa seção é `NOT_VERIFIED`.
+
 ## 4. O que a direção precisa cravar
 
 Uma direção pronta declara, no mínimo:
