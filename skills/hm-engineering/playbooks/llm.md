@@ -200,6 +200,7 @@ await runAgentLoop({
 
 - Resultado de tool pode chegar em vários blocos de conteúdo (um por item de lista). Cliente e teste leem todos os blocos; ler só o primeiro gera falso FAIL ou dado truncado. Antes de escrever contra um SDK de MCP, conferir a versão instalada: nomes de classe e formato de resultado mudam entre majors.
 - Teste da superfície de tools compara a lista exata de nomes, não a contagem, e roda no gate canônico (ver [ship](ship.md) · Gaps de teste).
+- **Agente headless com ferramentas (CLI de assinatura com tools) roda isolado das settings do usuário.** Lista de tools permitidas não restringe sozinha: o modo de permissão padrão da máquina (auto, bypass) libera o que está fora da lista. A chamada fixa as quatro coisas: modo restrito que ignora settings e MCP do usuário, conjunto explícito de tools, modo de permissão não interativo que nega o que não foi liberado e diretórios autorizados declarados. Os nomes das flags mudam entre versões: conferir no `--help` da CLI instalada antes de escrever. Prova: uma chamada real pedindo um comando proibido (listar a home, ler um dotfile) e conferir que ele aparece em `permission_denials` da saída JSON, mais uma chamada que usa a tool liberada com sucesso. Teste que só confere a lista de argumentos passa com o furo aberto e não vale como prova.
 - Logging de cada tool call pra auditoria. Erro em uma tool não derruba o loop inteiro.
 
 ### Transformação que não pode trocar palavra
