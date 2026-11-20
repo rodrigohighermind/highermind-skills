@@ -70,6 +70,8 @@ python3 scripts/with_server.py --server "npm run dev" --port 3000 -- python3 sho
 
 No script: registrar `page.on("console")` e `page.on("pageerror")` **antes** do `goto`; conferir o status HTTP da resposta; esperar um estado concreto da UI (`get_by_role(...).wait_for()`, fontes e imagens carregadas), não `networkidle`; screenshot em 1440 e 390 de largura, mais o breakpoint onde o conteúdo realmente quebra, salvos em `.orbit/review/` no repo como evidência do review. Reconhecer antes de agir: screenshot e DOM primeiro, seletores depois. Sem browser disponível: `NOT_VERIFIED`, nunca `PASS`.
 
+App nativo macOS: captura por id da janela do próprio processo (`-l`, nunca a tela inteira) antes do render offscreen; janela escolhida pelo PID, visível e de maior área, nunca a primeira da lista; imagem uniforme não vale como prova ([review §6c](playbooks/review.md)).
+
 ## Fechamento
 
 Fechamento do HM Orbit, mais: direção em uma frase, assinatura visual e razão, estados cobertos, viewports realmente vistos, findings separados entre quebra objetiva, acessibilidade e gosto. `product-ready` é do Owner.
