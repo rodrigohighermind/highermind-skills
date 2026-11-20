@@ -11,7 +11,7 @@ Construir o produto no padrão do Owner: arquitetura decidida, código simples e
 
 1. Se o HM Orbit não está no contexto, ler [references/orbit.md](references/orbit.md). As leis valem integralmente.
 2. Ler o profile da casa em [references/profile.md](references/profile.md).
-3. Ler `CLAUDE.md`/`AGENTS.md`, `MEMORY.md`, `git status` e `git log` recente do projeto. Preservar WIP alheio.
+3. Ler `CLAUDE.md`/`AGENTS.md`, `MEMORY.md`, `git status` e `git log` recente do projeto. Preservar WIP alheio; outra sessão ativa no mesmo repo segue [build §4](playbooks/build.md) · Várias sessões no mesmo repo.
 4. Buscar em [references/incidents.md](references/incidents.md) só incidentes do stack e risco em jogo.
 5. Carregar o playbook do modo ativo, e só ele.
 

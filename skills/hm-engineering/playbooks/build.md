@@ -61,6 +61,8 @@ O revisor recebe o diff e a fatia, não a conclusão do implementador. Problema 
 
 Paralelismo só para fatias que não compartilham arquivo nem estado. Na dúvida, sequencial.
 
+**Várias sessões no mesmo repo.** Cada repo tem uma sessão dona. A sessão visitante (outro agente, outro projeto que precisa de um ajuste ali) deixa a mudança no working tree, sem commit, sem install e sem deploy, e avisa a dona com os arquivos e os trechos que tocou. A dona faz commits separados por autor: primeiro só os próprios trechos, selecionados por hunk (`git add -p`, ou `git diff -U0` filtrado e `git apply --cached --unidiff-zero` quando os trechos estão no mesmo arquivo), depois os da visitante em commit próprio, com a autoria declarada. Porquê: commit que mistura dois autores não se reverte nem se revisa por intenção, e install feito pela visitante publica trabalho pela metade da dona. Prova: `git diff --cached` antes de cada commit mostra só os trechos de um autor, e `git status` limpo no fim mostra que nada da outra sessão se perdeu.
+
 ## 4b. Trabalho em segundo plano
 
 Vale para qualquer produto com fila, job ou processamento longo.
