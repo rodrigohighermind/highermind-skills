@@ -37,6 +37,8 @@ Regex, cache e dado bruto local resolvem antes do modelo. Listagem, total, statu
 
 Skip do modelo pequeno quando o médio já tem contexto suficiente: uma chamada que reaproveita contexto vence duas separadas. Exemplo: um pipeline local com regex resolve em segundos e de graça o que uma versão via API faz devagar e cobrando.
 
+Modelo local de terceiro é dependência: revisão fixada por commit e carga do disco sem rede (ver [security](security.md) §4 · Modelo de terceiro é dependência).
+
 ## 2. Nunca monitor/watcher LLM em sessão longa
 
 Watcher que re-invoca o modelo a cada evento local paga o CONTEXTO INTEIRO da sessão por evento trivial (exemplo: um custo relevante a cada arquivo que chega numa pasta). Regras:
@@ -197,6 +199,7 @@ await runAgentLoop({
 ```
 
 - Resultado de tool pode chegar em vários blocos de conteúdo (um por item de lista). Cliente e teste leem todos os blocos; ler só o primeiro gera falso FAIL ou dado truncado. Antes de escrever contra um SDK de MCP, conferir a versão instalada: nomes de classe e formato de resultado mudam entre majors.
+- Teste da superfície de tools compara a lista exata de nomes, não a contagem, e roda no gate canônico (ver [ship](ship.md) · Gaps de teste).
 - Logging de cada tool call pra auditoria. Erro em uma tool não derruba o loop inteiro.
 
 ### Transformação que não pode trocar palavra

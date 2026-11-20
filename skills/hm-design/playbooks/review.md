@@ -48,7 +48,7 @@ Finding visual sem screenshot é hipótese. Disciplina de captura:
 - **Par entrega × referência quando existe referência.** Os dois screenshots lado a lado, mesmo viewport, mesma tela. A diferença apontada é o finding.
 - **Estados capturados, não descritos.** Loading, empty e error são screenshots próprios; forçar o estado (rede lenta, dado zerado, erro provocado) faz parte do review.
 - **Console junto.** Print ou log do console do fluxo revisado. console.error novo é FAIL objetivo.
-- **Captura sem roubar a máquina.** Em máquina que o dono está usando, a janela de QA só fica em primeiro plano o tempo da captura e fecha logo depois; preferências e estado de QA vivem em domínio separado do app de uso. Janela de QA esquecida na frente rouba o foco e recebe o que o dono digita. Prova: depois da rodada de QA, nenhuma janela de QA aberta e as preferências do app de uso intactas.
+- **Captura sem roubar a máquina.** Bateria visual de app desktop roda sem tomar foco nem exigir tela livre: um modo de QA abre a janela atrás das outras, sem ativar o app, e a captura é feita pelo id da janela, que funciona com ela encoberta (receita em §6c). Onde isso não for possível, a janela de QA só fica em primeiro plano o tempo da captura e fecha logo depois. Preferências e estado de QA vivem em domínio separado do app de uso. Porquê: QA que toma o foco recebe o que o dono digita e acaba adiado para quando a máquina está livre, ou vira `NOT_VERIFIED`. Prova: o app em primeiro plano é o mesmo antes, durante e depois da bateria; ao final, nenhuma janela de QA aberta e as preferências do app de uso intactas.
 - **Input sintético só com a sessão desbloqueada.** Todo roteiro de QA que envia clique, arraste ou tecla sintética confere antes de cada bloco de interação se a tela está bloqueada (no macOS, `CGSSessionScreenIsLocked` em `CGSessionCopyCurrentDictionary()`). Bloqueada: a interação é `NOT_VERIFIED` com o motivo, e o roteiro segue só com o que não depende de input. Porquê: com a tela bloqueada os eventos vão para a tela de bloqueio, mas a captura por janela continua devolvendo imagem, então o roteiro termina sem erro e conclui sobre uma interação que nunca aconteceu. Prova: rodar o roteiro com a tela bloqueada e ver o relatório marcar as interações como `NOT_VERIFIED`, nunca PASS nem FAIL.
 
 O que não foi visto renderizado não recebe veredito: recebe NOT_VERIFIED com o motivo (ferramenta indisponível, estado não reproduzível).
@@ -99,7 +99,7 @@ Sem a prova da linha, o item é `NOT_VERIFIED`, nunca PASS. Screenshot parado s�
 
 ## 6a2. Estado que exige permissão ou hardware
 
-Estado que só existe com permissão do sistema ou hardware (gravação ativa, câmera, localização) ganha gancho de QA: a interface aceita o estado injetado por variável de ambiente, alimentado por dados reais produzidos por outro processo. Assim o estado é revisado e capturado sem a permissão, e a prova de "estado forçado e visto" (§6a) vale para ele também.
+Estado que só existe com permissão do sistema ou hardware (gravação ativa, câmera, localização) ganha gancho de QA: a interface aceita o estado injetado por variável de ambiente, alimentado por dados reais produzidos por outro processo. Assim o estado é revisado e capturado sem a permissão, e a prova de "estado forçado e visto" (§6a) vale para ele também. Gancho de QA que depende de dado assíncrono dispara na chegada do dado, nunca por espera fixa: espera fixa captura tela vazia na máquina lenta e desperdiça tempo na rápida.
 
 Proteção que impede a própria captura (janela excluída de compartilhamento de tela) fica desligada só no bundle de QA, por opção explícita, e ligada em todo o resto. A captura falhar no bundle normal é o teste de que a proteção vale.
 
@@ -131,7 +131,7 @@ App criado pelo starter de `hm-engineering` (`templates/macos-app`) já traz os 
 
 Render de app nativo não passa por browser. Receita:
 
-- Capturar a janela real: `screencapture -l <windowid>`, com o id vindo de `CGWindowListCopyWindowInfo` (filtrar pelo nome do processo).
+- Capturar a janela real: `screencapture -l <windowid>`, com o id vindo de `CGWindowListCopyWindowInfo` (filtrar pelo nome do processo). Listar com `.optionAll`, não só as janelas visíveis na tela: a captura por id funciona com a janela atrás de outras. O modo de QA em segundo plano usa `orderBack` no lugar de `makeKeyAndOrderFront` e não chama `NSApp.activate`.
 - Duas larguras: a janela padrão e a **janela mínima**, que é o "mobile" do desktop. Nas duas, modo claro e escuro.
 - Lado a lado com a referência, na resolução real (sem escala), mesma tela e mesmo estado.
 - Conferir que toda descrição de uso do Info.plist tem o entitlement correspondente na assinatura (`codesign -d --entitlements - --xml`). Com hardened runtime, permissão sem entitlement é negada sem janela e sem erro: o botão "Conectar" simplesmente não faz nada. O `hm_gate` faz esse check.

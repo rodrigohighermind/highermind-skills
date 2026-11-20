@@ -94,7 +94,7 @@ Para CADA endpoint, verificar:
 - SQL via ORM parametrizado, sem concatenação.
 - XSS: output encoding em todo render de dado do usuário.
 - Command injection: sem `os.system()`, `subprocess.run(shell=True)`, `eval()`, `exec()` com input externo.
-- Path traversal: sem `../` em caminho derivado de input.
+- Path traversal: sem `../` em caminho derivado de input. Id externo que vira caminho (request, fila, IPC, socket local, nome de arquivo) passa por **um único validador** chamado em toda porta de entrada, inclusive fila e worker, não só no handler: nome simples, sem separador de caminho, sem `..`, sem ponto inicial, resolvendo para filho direto da raiz esperada. Porquê: validação repetida por entrada diverge, e a porta esquecida escreve fora da pasta. Prova: teste de travessia com lista fixa de ids maliciosos aplicado a cada entrada, conferindo que nada foi criado fora da raiz.
 - NoSQL injection (Mongo/Redis), CRLF em headers HTTP, `\r\n` em campos que vão pra header de email.
 
 ### A04 · Insecure Design
@@ -186,6 +186,10 @@ Pra cada dep HIGH/CRITICAL sem upgrade no npm:
 
 Anti-pattern: ignorar o warning porque "esse CVE não me afeta". Debt acumula até virar vendor lock-in.
 
+### Modelo de terceiro é dependência
+
+Pesos de modelo baixados de um hub público seguem a disciplina de qualquer pacote: revisão fixada por commit (nunca por nome ou branch), carga do disco sem rede, download só quando o arquivo falta e sempre na revisão fixada, atualização só por mudança revisada do pin. Porquê: carregar por nome consulta o hub a cada partida e adota sozinho a revisão que o upstream publicar, o que quebra a promessa de produto local e abre a cadeia de suprimento. Prova: log da partida sem nenhuma requisição HTTP, e a partida funcionando com a rede desligada.
+
 ## 5. Secrets
 
 ### Scan no codebase
@@ -221,6 +225,7 @@ Secret no código: CRÍTICO. Secret no git history: CRÍTICO + rotação imediat
 
 - `.env` no `.gitignore`. `.env.example` só com placeholders (`change-me-*`).
 - Config file local com secret: chmod 600. Secrets não aparecem em log de build ou startup.
+- App local que guarda dado pessoal (áudio, transcrição, histórico, banco) cria a pasta de dados com 0700 na partida e corrige a permissão quando ela já existe mais aberta; arquivos e sockets nascem restritos (`umask 077` antes de criar). Porquê: o padrão do sistema deixa a pasta legível por outra conta da mesma máquina. Prova: teste que sobe o app com `HOME` limpo e confere o modo da pasta, dos arquivos e do socket.
 
 ## 6. Business logic (L2+, manual, scanner não pega)
 
@@ -233,6 +238,7 @@ Secret no código: CRÍTICO. Secret no git history: CRÍTICO + rotação imediat
 - Referral/promo: código reutilizável? Auto-referral?
 
 - Privacidade declarada (janela excluída de compartilhamento de tela, dado que não sai do aparelho, log sem PII): provar por um teste que **falha quando a proteção vale**. Exemplo: janela com exclusão de captura faz a captura daquela janela falhar; o teste espera a falha. Proteção sem teste é promessa.
+- Captura de entrada do usuário (voz, teclado, tela): a checagem de campo seguro (senha, entrada protegida do sistema) acontece **antes de capturar**, nunca só antes de entregar. Histórico, log, cache e arquivo temporário também são saída: o que foi capturado em campo seguro já vazou quando chegou a qualquer um deles. Prova: teste com o estado de campo seguro forçado na partida da captura, conferindo que nada foi gravado em nenhum destino.
 
 Método: mapear fluxos críticos; pra cada um, pular passo, repetir passo, inverter ordem, disparar em paralelo, injetar extremos, trocar role.
 

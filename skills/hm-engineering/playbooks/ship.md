@@ -43,6 +43,8 @@ O que NÃO está testado importa mais do que o que está:
 
 - Lógica de negócio sem unit test; endpoint sem teste de integração; fluxo de usuário sem cobertura e2e.
 - Fluxos de auth/authz sem teste; estados de erro assumidos mas nunca verificados; edge cases (vazio, limite, concorrência).
+- **Um placar só.** Todo teste que existe no repo, inclusive e2e e integração de servidor de ferramentas, roda pelo comando canônico do gate. Porquê: teste fora do placar quebra em silêncio e ninguém vê. Prova: listar os arquivos de teste do repo e conferir que cada um aparece na saída do comando canônico; teste que só roda à mão é finding.
+- **Superfície conferida como lista exata.** Teste de superfície pública (tools de um servidor MCP, comandos de CLI, rotas, exports) compara o conjunto exato de nomes, nunca a contagem. Porquê: contagem fica obsoleta sem dizer o que mudou; lista exata obriga a declarar cada adição ou remoção.
 - Gap crítico encontrado = escrever o teste, não só descrever. Prioridade: auth/authz/input validation > fluxos críticos (pagamento, features core) > edge cases > estados de erro.
 
 ### Verificação de agente (se o projeto tem agente AI)

@@ -50,6 +50,8 @@ python3 <skill>/templates/macos-app/new_app.py "Nome do App" com.empresa.app <de
 
 O gerador renomeia tudo, cria o git com o primeiro commit e recusa destino existente. Detalhes do que vem pronto em `templates/macos-app/README.md`. Divergir do starter é decisão declarada no `CLAUDE.md` do projeto, com o motivo.
 
+Quando a casa tem um criador de projeto próprio (comando que define localização, git, arquivos de contexto e primeiro commit), os dois não compõem direto: ambos criam o git e recusam destino existente. A ordem: o criador da casa cria o projeto; o starter é gerado em pasta temporária e copiado para dentro sem o `.git` e sem sobrescrever arquivo existente; o `.gitignore` é mesclado, não substituído. Porquê: escolher um dos dois em silêncio perde ou a organização da casa ou o piso do starter. Prova: build e testes verdes no projeto resultante, um só histórico git e os arquivos do criador da casa intactos.
+
 ## 4. Infra local Docker-first (quando há serviços)
 
 - `docker compose up` sobe tudo: banco, cache, serviços. Um comando.
