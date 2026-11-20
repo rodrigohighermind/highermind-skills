@@ -72,11 +72,26 @@ Data · versão · perguntas feitas: N de 12
 
 ## Decisões reservadas ao Owner
 ## Depois (ideias laterais)
+## Aceite
+<data> · "<palavras do Owner>" · correções aplicadas: <lista ou nenhuma>
 ```
 
 Fonte é sempre uma de três: `Owner` (com a resposta), `lido:` (com o caminho ou link) ou `SUPOSIÇÃO:` (com o motivo). Suposição nunca aparece como fato.
 
-Em seguida, sem pedir licença: `direction` dá o veredicto sobre o brief. `GO` segue para `spec`, `plan` e `init`, voltando ao Owner só com decisão reservada. `DEFER` ou `KILL` param ali, com o motivo e a condição de retorno.
+Em seguida, sem pedir licença: `direction` dá o veredicto sobre o brief. `DEFER` ou `KILL` param ali, com o motivo e a condição de retorno. `GO` não segue direto para a construção: passa pelo aceite do Owner.
+
+## Aceite antes de construir
+
+A entrevista termina em um documento de aprovação, e o aceite explícito do Owner é o gate entre `interview`/`direction` e `spec`/`plan`/`init`. Porque a entrevista é feita de respostas soltas e suposições do agente: o Owner só enxerga o produto inteiro quando ele volta montado, e corrigir ali custa uma frase, enquanto corrigir depois da spec e do repo custa retrabalho.
+
+- **Formato legível, não a tabela do brief.** Uma página local que o Owner lê de uma vez (HTML aberto no navegador, por exemplo). O brief é o registro de trabalho; o documento de aprovação é a leitura dele.
+- **Conteúdo, nesta ordem:** o que o produto é (para quem, a cena, o outcome), a primeira versão (o que entra), o que fica para depois, as suposições e as decisões reservadas ao Owner, com o veredicto de `direction`.
+- **Suposições destacadas e juntas.** Cada uma com o motivo, visualmente distinta do que o Owner disse, para ele corrigir todas em um passe.
+- **Correção volta para o brief antes de seguir.** Suposição corrigida muda de fonte para `Owner`; se a correção muda cena, forma ou outcome, `direction` reavalia e o documento é refeito.
+- **O aceite é registrado no brief** (data e as palavras do Owner). Silêncio, ou resposta a outra pergunta, não é aceite.
+- Depois do aceite, `spec`, `plan` e `init` seguem sem nova licença, voltando ao Owner só com decisão reservada.
+
+Prova: nenhum repo, spec ou plano existe antes da linha de aceite no brief.
 
 ## Anti-patterns
 
@@ -87,3 +102,4 @@ Em seguida, sem pedir licença: `direction` dá o veredicto sobre o brief. `GO` 
 - Reperguntar algo já dito, mesmo com outras palavras.
 - Brief sem a coluna de fonte, ou suposição escrita como fato.
 - Entrevista que nunca termina: passou do teto sem o Owner pedir.
+- Criar spec, plano ou repo antes do aceite registrado, ou pedir o aceite mostrando a tabela crua do brief.
