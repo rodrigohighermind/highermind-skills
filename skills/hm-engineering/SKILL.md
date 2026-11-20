@@ -58,6 +58,7 @@ Proporcional ao risco. Não negociável onde importa:
 7. Código já escrito: preservar e provar que a regressão falha na versão anterior e passa na corrigida.
 8. Teste existente não muda para o código passar. Só muda quando a spec mudou, e isso vai declarado no fechamento.
 9. Teste que muda estado global do processo (variável de ambiente, diretório corrente, singleton) entra na única suíte serializada do projeto que já mexe nisso, ou recebe o valor por parâmetro; nunca numa suíte nova que roda em paralelo. Porquê: o runner paraleliza suítes e o vizinho lê o valor trocado, falhando longe da causa. Prova: a suíte inteira com paralelismo ligado passa repetidas vezes.
+10. Caminho de dados que tem padrão quando a variável de ambiente falta nunca resolve para o dado real dentro do processo de teste: detectado o runner, o padrão é uma pasta temporária, e um teste trava isso. Porquê: teste que esquece ou perde a variável, ou corre enquanto outro a desliga, grava direto na pasta real do dono. Prova: rodar a suíte sem a variável definida e conferir que nada foi criado nem alterado na pasta real.
 
 ## Gate
 

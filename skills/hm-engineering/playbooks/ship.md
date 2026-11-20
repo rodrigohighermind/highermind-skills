@@ -144,6 +144,7 @@ Responsabilidade do Dev Team, nunca do Owner. Não é "build compila": é dirigi
 - Subir o build local, navegar o fluxo primário end-to-end como usuário, observar resultado e console.
 - Forms: submit, validação, duplo submit bloqueado, reset limpa de verdade.
 - O que não foi possível exercitar (sem browser, sem device, sem credencial) declara-se `NOT_VERIFIED` com motivo. "Não testei UI" é resposta válida; "tudo ok" sem ter olhado não é.
+- **Efeito em dado se relata com o lugar onde aconteceu.** Antes de afirmar que o dado real do dono mudou, conferir na fonte real e citar o caminho ou a query; efeito observado numa cópia de QA, pasta temporária ou banco descartável se relata como "na cópia". Porquê: smoke e QA rodam de propósito longe do dado real, e o relato que apaga essa diferença faz o dono confiar num efeito que não existe. Prova: a afirmação traz o caminho conferido, e ele é o da fonte real.
 
 ### Edge cases recorrentes (rede final, 80% dos bugs vivem aqui)
 
