@@ -576,6 +576,43 @@ def scan_macos_entitlements(root: Path) -> Check:
     return Check("entitlements do app macOS", "PASS", f"{len(apps)} app(s): toda descrição de uso tem o entitlement")
 
 
+WEB_UI_SUFFIXES = {".tsx", ".jsx", ".vue", ".svelte"}  # .html solto costuma ser documento, não app
+CSS_SUFFIXES = {".css", ".scss"}
+CSS_POINTER_RULE = re.compile(r"[^{}]*\b(?:button|\[role=)[^{}]*\{[^}]*cursor:\s*pointer", re.IGNORECASE)
+SWIFT_CLICKABLE = re.compile(r"\bButton\s*[\(\{]|\.onTapGesture\b|\bNSButton\b")
+SWIFT_POINTER = re.compile(r"\bpointingHand\b|\bpointerStyle\([^)\n]*\.link")
+
+
+def ui_files(root: Path, suffixes: set[str]) -> list[Path]:
+    return [
+        path for path in root.rglob("*")
+        if path.is_file() and path.suffix.lower() in suffixes
+        and not any(part in IGNORED_PARTS or part in SKIP_DIRS or part == ".build" for part in path.relative_to(root).parts)
+    ]
+
+
+def scan_pointer_cursor(root: Path) -> Check:
+    """Clicável mostra a mãozinha. Web: o navegador só a dá em link; botão, aba e item de menu precisam de regra global."""
+    quality = root / "hm-quality.json"
+    if quality.exists() and json.loads(quality.read_text(encoding="utf-8")).get("pointer_cursor") is False:
+        return Check("cursor de clique", "NOT_APPLICABLE", "pointer_cursor: false em hm-quality.json")
+    problems: list[str] = []
+    applicable = False
+    if ui_files(root, WEB_UI_SUFFIXES):
+        applicable = True
+        if not any(CSS_POINTER_RULE.search(css.read_text(encoding="utf-8", errors="replace")) for css in ui_files(root, CSS_SUFFIXES)):
+            problems.append("web: falta regra global `button, [role=button], [role=tab], [role=menuitem] { cursor: pointer }` (o reset do Tailwind 4 tira a mãozinha do botão)")
+    swift = [s for s in ui_files(root, {".swift"}) if re.search(r"^import (SwiftUI|AppKit)\b", s.read_text(encoding="utf-8", errors="replace"), re.MULTILINE)]
+    texts = [s.read_text(encoding="utf-8", errors="replace") for s in swift]
+    if any(SWIFT_CLICKABLE.search(text) for text in texts):
+        applicable = True
+        if not any(SWIFT_POINTER.search(text) for text in texts):
+            problems.append("macOS: nenhum clicável troca o cursor; aplicar no estilo base `.pointerStyle(.link)` (macOS 15+) ou NSCursor.pointingHand no hover")
+    if not applicable:
+        return Check("cursor de clique", "NOT_APPLICABLE", "sem interface clicável")
+    return Check("cursor de clique", "FAIL" if problems else "PASS", "\n".join(problems) if problems else "regra de mãozinha presente")
+
+
 def plan_checks(root: Path, base: str | None, distribution: str) -> list[Check]:
     commands = project_commands(root)
     checks = [Check(role, "NOT_VERIFIED", "planejado: " + " ".join(command)) for role, command in commands]
@@ -587,7 +624,7 @@ def plan_checks(root: Path, base: str | None, distribution: str) -> list[Check]:
     else:
         checks.append(missing_quality_check(root))
     checks.extend(scan_changed_code(root, base))
-    checks.extend([scan_rls(root), scan_llm_api_cost(root, distribution), scan_macos_sdk(root), scan_macos_entitlements(root)])
+    checks.extend([scan_rls(root), scan_llm_api_cost(root, distribution), scan_macos_sdk(root), scan_macos_entitlements(root), scan_pointer_cursor(root)])
     return checks
 
 

@@ -168,6 +168,7 @@ Qualquer item presente = FAIL direto, com localizador:
 - [ ] energia "a gente faz bonito depois" / hackathon MVP
 - [ ] dead avatars
 - [ ] formulário onde um agente deveria executar (produto agent-first)
+- [ ] link, botão, aba, item de menu ou linha clicável sem cursor de mão. Na web o navegador só dá a mão ao link, e o reset do Tailwind 4 tira do botão: a regra global `cursor: pointer` é obrigatória. No app nativo, aplicar no estilo base, nunca item a item. O `hm_gate` reprova (check "cursor de clique"); projeto que siga a seta da plataforma declara `"pointer_cursor": false` no `hm-quality.json`
 - [ ] spinner genérico como loading state
 - [ ] layout centralizado com laterais vazias em tela grande / maxWidth inventada
 - [ ] padding lateral assimétrico entre header e content (o padding lateral do DS)
