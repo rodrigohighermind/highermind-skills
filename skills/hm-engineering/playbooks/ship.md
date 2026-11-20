@@ -34,6 +34,7 @@ eslint . / ruff check # zero erros
 bun run build         # build de produção sobe
 ```
 
+- **O commit depende do código de saída do gate, não da leitura do texto.** O gate sai 0 em `PASS`, 1 em `FAIL` e 2 em `NOT_VERIFIED`; encadear como `gate && commit`, com o gate sozinho no lado esquerdo. Passar a saída por pipe (`gate | grep ... && commit`) troca o código do gate pelo do último comando do pipe, e o commit entra com o gate reprovado. Para filtrar a saída, gravar em arquivo e ler depois, ou usar `set -o pipefail`. Porquê: veredicto lido por texto depende de alguém ler; código de saída barra sozinho. Prova: forçar um `FAIL` e conferir que o encadeamento usado não chega ao commit.
 - Zero `console.error` novo e zero TODO crítico novo nos arquivos tocados na branch (TODO cosmético é aceitável).
 - Reportar a suíte com números: total, passando, falhando (com detalhe de cada), skipped, flaky. "Tudo passando" sem checar se os testes testam a coisa certa não é evidência.
 
@@ -174,6 +175,8 @@ Contraste WCAG AA; navegação por teclado; focus states em interativos; alt tex
 ## 9b2. Exceção declarada no gate
 
 Quando um teste precisa de uma key falsa para provar que a real não vaza, a linha leva `# hm-gate: sentinel <motivo>`. Sem motivo não vale, e linha com client de API paga nunca é exceção.
+
+Falso positivo em código que remove as keys do ambiente, numa linguagem cujo idioma de remoção o gate não reconhece: reescrever a remoção como filtro explícito de exclusão (`!=` contra o nome da key), que vale em qualquer linguagem, e reportar o idioma que faltou. Nunca desligar o check nem seguir com ele em `FAIL`. Porquê: o scan reconhece remoção por padrão de texto, e cada linguagem escreve remoção de um jeito. Prova: o gate passa nesse check com o código reescrito e o subprocess continua sem as keys.
 
 ## 9c. Floor guard (o diff não pode rebaixar a barra)
 
