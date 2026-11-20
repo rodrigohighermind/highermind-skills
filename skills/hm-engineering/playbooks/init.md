@@ -50,6 +50,8 @@ python3 <skill>/templates/macos-app/new_app.py "Nome do App" com.empresa.app <de
 
 O gerador renomeia tudo, cria o git com o primeiro commit e recusa destino existente. Detalhes do que vem pronto em `templates/macos-app/README.md`. Divergir do starter é decisão declarada no `CLAUDE.md` do projeto, com o motivo.
 
+**O starter é a memória do que a casa já resolveu.** Comportamento de janela, de chrome ou padrão de tela que um produto resolveu e o dono aprovou entra no starter no mesmo dia, com teste. Produto novo que repete defeito já resolvido em outro é falha do starter, não do produto: a correção é nos dois, e o produto de origem é varrido atrás dos irmãos que o starter ainda não tem. Porquê: solução que mora só no produto onde nasceu não chega ao próximo, e o dono reprova duas vezes a mesma coisa. Prova: app recém-gerado pelo starter exibe o comportamento sem nenhuma linha escrita à mão, e o teste do starter falha quando ele é removido.
+
 Quando a casa tem um criador de projeto próprio (comando que define localização, git, arquivos de contexto e primeiro commit), os dois não compõem direto: ambos criam o git e recusam destino existente. A ordem: o criador da casa cria o projeto; o starter é gerado em pasta temporária e copiado para dentro sem o `.git` e sem sobrescrever arquivo existente; o `.gitignore` é mesclado, não substituído. Porquê: escolher um dos dois em silêncio perde ou a organização da casa ou o piso do starter. Prova: build e testes verdes no projeto resultante, um só histórico git e os arquivos do criador da casa intactos.
 
 ## 4. Infra local Docker-first (quando há serviços)

@@ -43,7 +43,7 @@ Um modo primário, no máximo dois de apoio.
 2. **Cravar o critério.** Escrever o outcome técnico verificável e escolher os checks antes de tocar no código. Spec colidindo com arquitetura existente ou ampliando produto: parar e escalar.
 3. **Agir.** Primitiva pronta antes de construir: o que a linguagem ou o repo já oferecem vem primeiro (`functools.lru_cache` para cache, `argparse` para CLI, `pathlib` para caminho, o client que o projeto já usa). Classe, módulo ou camada nova só com segundo uso real. Operação destrutiva: alvo resolvido e backup verificado antes, mesmo com pedido explícito. Fatia vertical completa: validação de fronteira, erro, estado vazio, cancelamento, cleanup, log útil. Menor diff coerente. Zero `any`, zero bare `except`, zero fire-and-forget sem handler, query sempre limitada.
 4. **Provar.** Rodar os checks e ler a saída. Fluxo principal observado, não suposto.
-5. **Cristalizar.** Gotcha ou decisão vai para `MEMORY.md`/topic file; falha nova com lei reutilizável vira `incidents/`.
+5. **Cristalizar.** Gotcha ou decisão vai para `MEMORY.md`/topic file; falha nova com lei reutilizável vira `incidents/`. Defeito que outro produto da casa já tinha resolvido é falha do starter: corrigir aqui e propor a entrada no starter no mesmo turno ([init §3b](playbooks/init.md)).
 
 ## Testes
 

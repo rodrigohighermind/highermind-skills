@@ -58,6 +58,21 @@ Porquê: a direção aprovada define a identidade, não o que cada tipo de tela 
 
 Prova: cada tela nova entra no review com a referência do tipo e o inventário marcado ([review §4](review.md)). Sem isso, a tela é `NOT_VERIFIED`.
 
+## 3d. Padrão aprovado vira padrão da casa
+
+Tipo de tela que um produto da casa já resolveu e o dono aprovou é a referência daquele tipo para os próximos (§3c, passo 1). O produto novo parte da medida do código de origem (geometria, papéis tipográficos, transição), não de um redesenho. Divergir é decisão declarada, com o motivo.
+
+Tela de ajustes, o padrão:
+
+1. **Camada sobre o app**, com scrim separado (§11b2). Nunca página própria: o usuário mexe e volta para onde estava.
+2. **Coluna de navegação** com as seções agrupadas por tema, rótulo de grupo discreto e item igual ao da barra lateral do app, com ícone. No rodapé, a identificação do app.
+3. **Painel de conteúdo** com o título da seção e fechar por botão e por Esc.
+4. **Cada ajuste é uma linha:** título, detalhe em tinta secundária e um único controle à direita, com divisor entre linhas. Ajuste que pede dois controles são dois ajustes.
+
+Porquê: tela redesenhada do zero a cada produto diverge da que o dono já aprovou, e ele reprova de novo o que já tinha resolvido.
+
+Prova: captura lado a lado com a tela do produto de origem, mesmo estado, e a régua de paridade dentro da tolerância nos elementos estruturais ([review §2b](review.md)). Sem a comparação, `NOT_VERIFIED`.
+
 ## 4. O que a direção precisa cravar
 
 Uma direção pronta declara, no mínimo:
