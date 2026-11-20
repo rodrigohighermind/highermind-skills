@@ -62,6 +62,9 @@ Proporcional ao risco. Não negociável onde importa:
 
 `python3 scripts/hm_gate.py --root <projeto> --distribution personal|saas` descobre e roda typecheck, lint, test, smoke e checks de segurança e custo. Rodar com `--help` antes; tratar como caixa-preta. `--plan` mostra o que vai rodar sem executar. Exit 2 = `NOT_VERIFIED`, nunca verde. Rodar também os checks específicos que o gate não descobre.
 
+- Verde só com o `$?` do gate lido e igual a 0, nunca pela leitura do fim da saída; falha fora do diff se conserta na mesma entrega ([ship §2](playbooks/ship.md)).
+- Todo check roda sobre a árvore entregue (`--root`), nunca por caminho fixo: em cópia de trabalho, caminho fixo audita a `main` ([ship §2](playbooks/ship.md)).
+
 ## Fechamento
 
 Fechamento do HM Orbit, mais: arquivos materiais alterados, checks rodados com resultado real, risco residual, decisão técnica tomada e decisão de produto escalada. Declarar `baseline-ready` ou o estado exato que impede. Nunca `product-ready`.
