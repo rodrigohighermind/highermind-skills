@@ -72,7 +72,7 @@ python3 scripts/with_server.py --server "npm run dev" --port 3000 -- python3 sho
 
 No script: registrar `page.on("console")` e `page.on("pageerror")` **antes** do `goto`; conferir o status HTTP da resposta; esperar um estado concreto da UI (`get_by_role(...).wait_for()`, fontes e imagens carregadas), não `networkidle`; screenshot em 1440 e 390 de largura, mais o breakpoint onde o conteúdo realmente quebra, salvos em `.orbit/review/` no repo como evidência do review. Reconhecer antes de agir: screenshot e DOM primeiro, seletores depois. Sem browser disponível: `NOT_VERIFIED`, nunca `PASS`.
 
-App nativo macOS: captura por id da janela do próprio processo (`-l`, nunca a tela inteira) antes do render offscreen; janela escolhida pelo PID, visível e de maior área, nunca a primeira da lista; imagem uniforme não vale como prova; o que o sistema desenha por cima da view (barra de rolagem, cursor, destaque de arrastar, menu, alerta) só conta visto na captura da janela real, e item de review nunca volta ao Owner como "fica para você conferir" ([review §6c](playbooks/review.md)).
+App nativo macOS: captura por id da janela do próprio processo (`-l`, nunca a tela inteira) antes do render offscreen; janela escolhida pelo PID, visível e de maior área, nunca a primeira da lista; imagem uniforme não vale como prova; o que o sistema desenha por cima da view (barra de rolagem, cursor, destaque de arrastar, menu, alerta) só conta visto na captura da janela real de um pacote `.app` de QA com bundle id próprio (binário solto sai em branco; offscreen só para layout estático), e item de review nunca volta ao Owner como "fica para você conferir" ([review §6c](playbooks/review.md)).
 
 ## Fechamento
 
