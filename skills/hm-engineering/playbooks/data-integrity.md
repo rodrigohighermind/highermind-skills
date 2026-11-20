@@ -269,6 +269,13 @@ Registrar data do último drill. Multi-user/produção: drill completo ao menos 
 
 Porquê: o que a ingestão não mapeou não existe para o resto do produto, e resumo, tela e agente passam a afirmar que a fonte não tem o dado. Prova: o teste roda sobre payload real de cada fonte, e um campo novo plantado no bruto o faz falhar.
 
+### Extração que associa valor a entidade
+
+- **A associação vem de âncora no próprio bloco, nunca do "mais próximo conhecido".** Achado a exame, valor a pessoa, lançamento a conta: o valor se prende ao cabeçalho, rótulo ou chave do bloco em que está. Sem âncora reconhecida, o registro fica sem associação e aparece como tal, nunca herda a entidade vizinha.
+- **Extração de documento real se confere com o resultado inteiro listado contra a fonte.** Teste sintético prova o parser, não o documento: o documento real nomeia as entidades de outro jeito, agrupa vários itens e omite cabeçalhos. Em dado de saúde, jurídico e financeiro, isso é gate antes de dizer que a extração funciona.
+
+Porquê: o fallback de proximidade troca um "não sei" visível por um erro silencioso, que grava o valor na entidade errada e faz a entidade certa sumir. Prova: um documento com vários blocos, em que um cabeçalho usa nome diferente do cadastro, sai com aquele bloco sem associação e nenhum outro bloco recebe o valor dele; a listagem completa contra a fonte bate linha a linha.
+
 ## Disaster recovery (multi-user / produção pública)
 
 | Métrica | Pergunta | Típico |
