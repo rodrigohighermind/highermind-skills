@@ -112,6 +112,7 @@ Para cada campo exibido, perguntar: **de onde vem isso e qual a certeza?** Em pr
 - **Progresso diz a verdade.** Esperando, trabalhando (com porcentagem ou tempo real restante) e pronto são estados distintos. Spinner em item que está só na fila é mentira.
 - **Ação sem objeto fica desabilitada.** Copiar, exportar ou enviar sem conteúdo não aparece ativo.
 - **Revisar com dado real e volume real.** O defeito aparece com a fila cheia, a lista longa e o dado importado, não com um item de exemplo.
+- **Mesmo dado em dois lugares, um cálculo só.** Quando a interface mostra o mesmo dado em mais de um lugar (cartão e detalhe, lista e cabeçalho, ícone e rótulo), ele sai de uma função ou propriedade única que as duas views consomem; nenhuma view recalcula por conta própria. A prova visual abre os dois lugares lado a lado, no mesmo estado, e a cena de captura fabrica cada estado do dado (fixture ou gancho de QA), em vez de depender do que existe na máquina. Porquê: dois cálculos divergem no primeiro caso de borda, e captura feita com o dado que estava à mão só mostra os estados que por acaso existiam. Prova: teste que alimenta a função única com cada estado e confere a saída, mais uma captura por estado com os dois lugares visíveis e concordando.
 
 ## 6b. Acessibilidade que costuma escapar (WCAG 2.2)
 
