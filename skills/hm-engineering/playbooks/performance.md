@@ -83,6 +83,8 @@ Interface "ao vivo" (transcrição, streaming, colaboração, progresso) mede o 
 
 **Custo de estágio de modelo é medido por amostra.** Todo estágio de modelo no caminho crítico (classificador, formatador, verificador) tem a latência registrada por entrada real e por estágio, num placar único que roda a cada mudança. Porquê: média e mediana escondem a classe de entradas comuns que fura o filtro barato e paga o estágio caro sem precisar dele; só a linha por amostra mostra quem pagou e por quê. Prova: o placar lista, por entrada, o tempo de cada estágio e se ele mudou a saída; estágio que cobra de muitas entradas e muda poucas é o próximo alvo.
 
+**Modelo local aquece na partida do serviço.** Serviço que responde com modelo local (voz, transcrição, classificação) carrega os pesos e roda uma inferência descartável ao subir, antes de aceitar o primeiro pedido. Porquê: a primeira inferência paga carga de pesos e compilação, e sem aquecimento quem paga é a primeira interação da pessoa, justamente a que forma a impressão do produto. Prova: o placar mede o tempo até o primeiro resultado logo após reiniciar o serviço, separado do tempo em regime, contra o limite combinado; medir só com o serviço já quente é `NOT_VERIFIED` para a primeira interação.
+
 ## Database
 
 - Todo FK indexado; WHERE frequente = composite index. `EXPLAIN ANALYZE` prova, opinião não.

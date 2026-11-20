@@ -162,6 +162,8 @@ Serviço que já roda: varrer o log de produção desde o último ship por `Trac
 
 Cada passo manual não documentado é dívida. O padrão: engenheiro novo na segunda-feira roda o projeto antes do almoço.
 
+**Pacote que embute binário nativo se prova importando, não instalando.** Pacote do registro que carrega biblioteca nativa ou dados compilados pode instalar sem erro e quebrar no primeiro uso, porque traz caminho fixo da máquina onde foi construído. Conferir a versão instalada com um import e uma chamada real em ambiente limpo antes de escrever contra ela. Se o pacote está quebrado, a saída é a biblioteca do sistema, com três condições: a substituição mora num módulo único e comentado com o motivo, não espalhada pelos pontos de uso; o instalador do projeto garante a dependência de sistema e falha com mensagem clara quando ela falta; e o smoke do clone limpo exercita a chamada real. Porquê: o contorno feito à mão na máquina de quem desenvolveu não existe na próxima instalação. Prova: instalação do zero, numa máquina ou conta sem a dependência, termina com a chamada real funcionando ou com o erro que diz o que instalar.
+
 ## 9. Custo (se usa APIs pagas)
 
 - Quantas calls um fluxo típico gera; contexto enviado é o mínimo; calls redundantes cacheadas.
