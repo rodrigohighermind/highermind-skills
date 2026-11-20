@@ -203,6 +203,25 @@ await runAgentLoop({
 - **Agente headless com ferramentas (CLI de assinatura com tools) roda isolado das settings do usuário.** Lista de tools permitidas não restringe sozinha: o modo de permissão padrão da máquina (auto, bypass) libera o que está fora da lista. A chamada fixa as quatro coisas: modo restrito que ignora settings e MCP do usuário, conjunto explícito de tools, modo de permissão não interativo que nega o que não foi liberado e diretórios autorizados declarados. Os nomes das flags mudam entre versões: conferir no `--help` da CLI instalada antes de escrever. Prova: uma chamada real pedindo um comando proibido (listar a home, ler um dotfile) e conferir que ele aparece em `permission_denials` da saída JSON, mais uma chamada que usa a tool liberada com sucesso. Teste que só confere a lista de argumentos passa com o furo aberto e não vale como prova.
 - Logging de cada tool call pra auditoria. Erro em uma tool não derruba o loop inteiro.
 
+### Agente dentro do produto: nível mínimo
+
+Todo agente que conversa com o dono do produto nasce com o comportamento abaixo. A tela dele está em `hm-design`, playbook `direction` §3d.
+
+- **Aprende em passo próprio, depois da troca, e só do que o dono disse.** Fala do agente e dado ingerido nunca viram memória. Memória tem tipo (contexto com início e fim, registro de um dia, preferência). Aprender nunca é silencioso: a resposta mostra o que foi guardado, e a memória se vê e se apaga nos ajustes.
+- **Contexto lê o dado.** O que o dono contou explica o número (uma viagem explica uma métrica fora do padrão), e o que já foi gerado no dia se reescreve quando o contexto muda.
+- **Sem sessão guardada no modelo.** Cada turno leva conversa, memória e dados de agora; o estado mora no app.
+- **Ordem do dono não é memória.** Vira estado próprio do app. O agente discorda uma vez, com o motivo, e cumpre. Guardrail do agente nunca anula decisão que é do dono.
+- **Honestidade.** Consulta a base antes de dizer que não sabe; lacuna do recorte se diz como lacuna do recorte (§4 · Ausência no contexto); fonte e data em cada número; orientação sem prova se declara provisória.
+- **Gráfico só quando ajuda:** no máximo um por resposta, só com números que o agente recebeu, com a fonte.
+- **Histórico salvo a cada mensagem**, e a conversa do dia reabre sozinha.
+- **Ações estruturadas por bloco cercado** (gráfico, consulta somente leitura com limite de rodadas), lidas pelo app e nunca mostradas ao usuário. Consulta passa por conexão somente leitura, não por filtro de texto.
+- **Duas portas.** A fala do dono ensina; a consulta vinda de outro agente devolve dado com fonte e não altera nada.
+- Custo pela assinatura, sem ferramentas na CLI e com as keys fora do ambiente (§0).
+
+Porquê: agente sem esses mínimos esquece o que o dono disse, inventa sobre a fonte ou aprende com a própria fala, e o dono perde a confiança na primeira semana.
+
+Prova: a porta de outro agente roda e o hash do arquivo de memória fica igual antes e depois; o teste que faz o agente aprender roda numa cópia isolada da pasta de dados, nunca na real; caso de eval com ordem do dono contra o guardrail mostra uma discordância e o cumprimento.
+
 ### Transformação que não pode trocar palavra
 
 Formatar, pontuar, quebrar em lista ou estruturar texto que é do usuário (ditado, transcrição, dado clínico, documento legal): o modelo **não escreve o texto de saída**.

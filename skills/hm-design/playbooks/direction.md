@@ -71,6 +71,16 @@ Tela de ajustes, o padrão:
 3. **Painel de conteúdo** com o título da seção e fechar por botão e por Esc.
 4. **Cada ajuste é uma linha:** título, detalhe em tinta secundária e um único controle à direita, com divisor entre linhas. Ajuste que pede dois controles são dois ajustes.
 
+Conversa com agente, o padrão (medido num app de assistente de referência, não inventado):
+
+1. **Estado vazio:** saudação pelo nome do usuário, composer no meio da página e sugestões discretas. Sem título de página.
+2. **Conversa em coluna de leitura centrada.** Fala do usuário em bolha discreta à direita. Resposta do agente em texto corrido, sem caixa e sem rótulo com o nome do agente, no tamanho de leitura (§7). Parágrafos espaçados, lista com marcador em coluna própria e recuo pendente, negrito só no achado.
+3. **Ações por ícone embaixo de cada resposta**, com nome ao passar o mouse: copiar (texto sem marcação), ouvir e, quando o agente guardou algo, um rótulo que abre o que foi guardado. Nada em caixa competindo com a resposta.
+4. **Topo** com título pequeno e, à direita, histórico e nova conversa. O composer é o mesmo no vazio e na conversa: Return envia, Shift Return quebra linha.
+5. **A conversa rola** quando a resposta cresce e nada fica escondido atrás do composer. Colar e ditar dependem do menu Editar ([review §6c](review.md)).
+
+Variação sobre um tipo que já tem padrão não se inventa: o dono reprova a tentativa inventada e manda seguir a prática estabelecida.
+
 Porquê: tela redesenhada do zero a cada produto diverge da que o dono já aprovou, e ele reprova de novo o que já tinha resolvido.
 
 Prova: captura lado a lado com a tela do produto de origem, mesmo estado, e a régua de paridade dentro da tolerância nos elementos estruturais ([review §2b](review.md)). Sem a comparação, `NOT_VERIFIED`.
@@ -115,7 +125,7 @@ Decoração sem propósito reprova. Complexidade sem clareza reprova. Se um elem
 - A conversa é a interface primária. Formulário é exceção, não regra.
 - Antes de aprovar uma tela com formulário, perguntar: "o agente não deveria fazer isso?"
 - Dashboard existe pra mostrar o que o agente fez ou está fazendo, não pra o usuário operar.
-- **Resposta de agente nasce completa.** Desde a primeira versão: texto no tamanho de leitura da página, em parágrafos, ação de copiar em cada resposta, histórico que sobrevive a fechar o app e um jeito de começar conversa nova. Porquê: o usuário compara com o assistente que usa todo dia, e resposta sem copiar ou que some ao fechar lê como protótipo. Prova: copiar uma resposta e colar fora do app; fechar, reabrir e achar a conversa.
+- **Resposta de agente nasce completa.** Desde a primeira versão: texto no tamanho de leitura da página, em parágrafos, ação de copiar em cada resposta, histórico que sobrevive a fechar o app e um jeito de começar conversa nova. Porquê: o usuário compara com o assistente que usa todo dia, e resposta sem copiar ou que some ao fechar lê como protótipo. Prova: copiar uma resposta e colar fora do app; fechar, reabrir e achar a conversa. O desenho completo da conversa está em §3d; o comportamento do agente, no playbook `llm` de `hm-engineering` (§3 · Agente dentro do produto).
 
 Produto puramente ferramenta/website sem agente ignora este bloco.
 

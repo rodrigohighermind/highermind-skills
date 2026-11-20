@@ -29,7 +29,7 @@ Construir o produto no padrão do Owner: arquitetura decidida, código simples e
 | Release, QA, deploy, rollback | [ship](playbooks/ship.md) |
 | Incidente, observabilidade, runbook, limpeza | [operate](playbooks/operate.md) |
 | Lentidão ou custo variável | [performance](playbooks/performance.md) |
-| Feature de IA ou LLM dentro do produto, eval de IA | [llm](playbooks/llm.md) |
+| Feature de IA ou LLM dentro do produto, eval de IA (agente que conversa com o dono: nível mínimo em §3) | [llm](playbooks/llm.md) |
 | CLI | [cli](playbooks/cli.md) |
 | Schema, migration, RLS, backup, restore, identidade | [data-integrity](playbooks/data-integrity.md) |
 | Métrica, KPI, tracking, qualidade de dado, análise | [data-measure](playbooks/data-measure.md) |
