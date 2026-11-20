@@ -118,7 +118,7 @@ O PM decide o ajuste de escopo dentro da spec; se o corte muda UX final ou valor
 
 Escopo novo volta para decisão. Não entra escondido na sprint.
 
-- Ideia nova durante a execução vai pra fila de `direction`/`discover`, não pro sprint corrente.
+- Ideia nova durante a execução vai pra fila de `interview`/`direction`, não pro sprint corrente.
 - A exceção é correção que bloqueia o outcome da própria sprint: isso não é escopo novo, é P0 descoberto.
 - "Já que estou mexendo aqui..." é a origem da maioria dos estouros. Nomear e devolver pra fila.
 

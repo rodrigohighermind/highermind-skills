@@ -1,6 +1,6 @@
 ---
 name: hm-product
-description: Use em qualquer decisão de produto, mesmo quando o pedido não diz "produto" - vale construir isso, ideia nova, tese, problema, hipótese, JTBD, estratégia, Futuro vs Passado, Autopilot vs Copilot, outcome, transformar ideia em spec, critérios de aceite Given/When/Then, priorizar, roadmap, sprint, dependências, matar ou adiar iniciativa, lançar, beta, rollout, pricing, GTM, funnel, ativação, retenção, ler resultado de lançamento. Aplica mesmo quando a pergunta parece casual ou a resposta parece óbvia.
+description: Use em qualquer decisão de produto, mesmo quando o pedido não diz "produto" - me entrevista, próximo produto, quero construir X, ideia falada solta, vale construir isso, ideia nova, tese, problema, hipótese, JTBD, estratégia, Futuro vs Passado, Autopilot vs Copilot, outcome, transformar ideia em spec, critérios de aceite Given/When/Then, priorizar, roadmap, sprint, dependências, matar ou adiar iniciativa, lançar, beta, rollout, pricing, GTM, funnel, ativação, retenção, ler resultado de lançamento. Aplica mesmo quando a pergunta parece casual ou a resposta parece óbvia.
 ---
 
 # HM Product
@@ -19,6 +19,7 @@ Transformar visão em decisão falsificável e trabalho executável. Produto rec
 
 | Momento | Playbook |
 |---|---|
+| Entrevistar o Owner para o próximo produto, ideia ainda não formada | [interview](playbooks/interview.md) |
 | Vale construir, direção, tese, problema, JTBD | [direction](playbooks/direction.md) |
 | Transformar decisão em contrato executável | [spec](playbooks/spec.md) |
 | Sprint, sequência, dependência, risco, handoff | [plan](playbooks/plan.md) |
@@ -37,7 +38,7 @@ Métrica, instrumentação e experimento são executados por `hm-engineering` (p
 
 ## Perguntas
 
-Produto é onde mais se pergunta e onde pergunta mais custa ao Owner. Antes de perguntar, ler o contexto, a memória e o Source of Truth. Perguntar só o que muda a decisão e é dele: identidade, prioridade, pricing, posicionamento. Uma pergunta por vez, com a recomendação já na mesa. O resto decidir, declarar a suposição e seguir.
+Produto é onde mais se pergunta e onde pergunta mais custa ao Owner. Antes de perguntar, ler o contexto, a memória e o Source of Truth. Perguntar só o que muda a decisão e é dele: identidade, prioridade, pricing, posicionamento. Uma pergunta por vez, com a recomendação já na mesa. O resto decidir, declarar a suposição e seguir. A exceção é o modo `interview`, que o Owner invoca para ser perguntado; mesmo nele, só o que é dele e nenhum arquivo responde, sempre com a hipótese.
 
 ## Referência externa
 

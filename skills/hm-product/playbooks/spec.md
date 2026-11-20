@@ -8,7 +8,7 @@ Este playbook aprofunda o modo. Autoridade, evidência e fechamento vêm do HM O
 
 Contrato entre PM e Dev Team. Não é wireframe, não é documento de arquitetura, não é wishlist. Uma spec boa deixa o Dev Team implementar sem voltar com pergunta de produto, e deixa qualquer um verificar depois se o que foi entregue é o que foi pedido. Ambiguidade na spec vira pergunta no meio da sprint; pergunta no meio da sprint vira pausa; pausa custa dias.
 
-Spec só nasce de decisão tomada. Se a direção ainda está em aberto, voltar para `direction`. Se o problema ainda não tem evidência, voltar para `discover`.
+Spec só nasce de decisão tomada. Se a direção ainda está em aberto, voltar para `direction`. Se faltam insumos que só o Owner tem (cena, outcome, referência, prioridade sob conflito), voltar para `interview`; se falta evidência do problema, para `direction`.
 
 ## Formato cravado
 

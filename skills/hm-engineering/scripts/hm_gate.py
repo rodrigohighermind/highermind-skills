@@ -366,6 +366,26 @@ def source_files(root: Path) -> list[Path]:
     return sorted(path for path in root.rglob("*") if path.is_file() and path.suffix.lower() in SOURCE_SUFFIXES and not any(part in IGNORED_PARTS for part in path.parts))
 
 
+KEY_LIST_DEFINITION = re.compile(r"^\s*([A-Z][A-Z0-9_]*)\s*(?::[^=]+)?=\s*[\(\[\{][^#\n]*(?:ANTHROPIC|OPENAI)_API_KEY")
+
+
+def key_removal_lists(text: str) -> set[str]:
+    """Constantes com nomes de key que o arquivo usa para REMOVER do ambiente (filtro ou pop em laço)."""
+    found: set[str] = set()
+    for match in (KEY_LIST_DEFINITION.match(line) for line in text.splitlines()):
+        if not match:
+            continue
+        name = re.escape(match.group(1))
+        if re.search(rf"\bnot\s+in\s+{name}\b", text):
+            found.add(match.group(1))
+            continue
+        for loop in re.finditer(rf"\bfor\s+(\w+)\s+in\s+[\(\[]?\*?{name}\b", text):
+            var = re.escape(loop.group(1))
+            if re.search(rf"\.pop\(\s*{var}\b|\bdel\s+\w+\[\s*{var}\s*\]", text[loop.end():loop.end() + 400]):
+                found.add(match.group(1))
+    return found
+
+
 def scan_llm_api_cost(root: Path, distribution: str) -> Check:
     hits: list[str] = []
     test_hits: list[str] = []
@@ -373,10 +393,13 @@ def scan_llm_api_cost(root: Path, distribution: str) -> Check:
         relative = str(path.relative_to(root))
         if path.resolve() == Path(__file__).resolve():
             continue
-        for line_number, line in enumerate(path.read_text(encoding="utf-8", errors="replace").splitlines(), start=1):
+        text = path.read_text(encoding="utf-8", errors="replace")
+        removal_lists = key_removal_lists(text)
+        for line_number, line in enumerate(text.splitlines(), start=1):
             has_client = any(pattern.search(line) for pattern in LLM_CLIENT_PATTERNS)
             has_key = bool(LLM_KEY_PATTERN.search(line))
-            explicit_removal = any(pattern.search(line) for pattern in KEY_REMOVAL_PATTERNS)
+            list_definition = KEY_LIST_DEFINITION.match(line)
+            explicit_removal = any(pattern.search(line) for pattern in KEY_REMOVAL_PATTERNS) or bool(list_definition and list_definition.group(1) in removal_lists)
             # Exceção declarada por linha, com motivo: key falsa usada para provar que a real não vaza.
             declared_sentinel = bool(re.search(r"hm-gate:\s*sentinel\s+\S.{3,}", line)) and not has_client
             if has_client or (has_key and not explicit_removal and not declared_sentinel):

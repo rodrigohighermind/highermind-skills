@@ -188,10 +188,10 @@ class _Stub(http.server.BaseHTTPRequestHandler):
 class MemberCallTest(unittest.TestCase):
     def test_cli_member_gets_system_and_prompt_and_no_paid_keys(self) -> None:
         script = ("import json,os,sys; print(json.dumps({'recommendation': sys.argv[2], 'claims': [], "
-                  "'leak': os.environ.get('ANTHROPIC_API_KEY')}))")
+                  "'leak': os.environ.get('ANTHROPIC_API_KEY')}))")  # hm-gate: sentinel prova que a key real não chega ao membro
         m = member(name="fake", policy="subscription", kind="cli",
                    command=[sys.executable, "-c", script, "{system}", "{prompt}"])
-        with mock.patch.dict(os.environ, {"ANTHROPIC_API_KEY": "real-looking"}):
+        with mock.patch.dict(os.environ, {"ANTHROPIC_API_KEY": "real-looking"}):  # hm-gate: sentinel key falsa para provar o filtro
             text, usd = c.call_member(m, "SYS", "the brief")
         data = c.parse_answer(text)
         self.assertEqual(data["recommendation"], "the brief")

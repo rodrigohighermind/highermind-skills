@@ -166,6 +166,7 @@ Fale do jeito que você já fala. O Orbit reconhece o momento:
 | "Implementa o checkout com cupom." | `hm-engineering` · playbook `build`: critério de sucesso, fatias verificáveis, prova no fim. |
 | "Cria a tabela de faturas no Supabase." | `hm-engineering` · `data-integrity`: RLS e policy na mesma migration, teste de acesso negado. |
 | "Revisa essa tela antes de subir." | `hm-design` · `review`: renderiza, screenshots em desktop e mobile, console, acessibilidade. |
+| "Me entrevista, quero construir meu próximo produto." | `hm-product` · `interview`: lê o que já existe antes de perguntar, uma pergunta por vez com a hipótese na mesa, aceita resposta longa por voz e sai com um brief que diz de onde veio cada campo. |
 | "Vale a pena construir esse feed social?" | `hm-product` · `direction`: recomendação, contra-argumento, critério que mudaria a decisão. |
 | "Postgres ou SQLite para isso? Pede outras opiniões." | `hm-council`: briefing com a evidência, membros às cegas, conflitos com o teste que resolve cada um, o que medir. |
 | "Cria um app de Mac para isso." | `hm-engineering` · `init`: nasce do starter macOS, com SDK atual, chrome nativo, transições certas, QA embutido e gate verde no primeiro commit. |
