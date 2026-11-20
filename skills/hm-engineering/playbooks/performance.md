@@ -85,6 +85,8 @@ Interface "ao vivo" (transcrição, streaming, colaboração, progresso) mede o 
 
 **Modelo local aquece na partida do serviço.** Serviço que responde com modelo local (voz, transcrição, classificação) carrega os pesos e roda uma inferência descartável ao subir, antes de aceitar o primeiro pedido. Porquê: a primeira inferência paga carga de pesos e compilação, e sem aquecimento quem paga é a primeira interação da pessoa, justamente a que forma a impressão do produto. Prova: o placar mede o tempo até o primeiro resultado logo após reiniciar o serviço, separado do tempo em regime, contra o limite combinado; medir só com o serviço já quente é `NOT_VERIFIED` para a primeira interação.
 
+**Carga paralela de modelos importa as bibliotecas antes de abrir as threads.** Carregar ou aquecer dois modelos em threads paralelas só depois que as bibliotecas de modelo foram importadas no thread principal. Porquê: biblioteca com import preguiçoso não é thread-safe, e a corrida aparece como erro de import intermitente que não tem relação com o código chamado. Prova: a partida com carga paralela roda repetidas vezes sem erro de import.
+
 ## Database
 
 - Todo FK indexado; WHERE frequente = composite index. `EXPLAIN ANALYZE` prova, opinião não.
