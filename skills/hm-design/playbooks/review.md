@@ -132,7 +132,8 @@ App criado pelo starter de `hm-engineering` (`templates/macos-app`) já traz os 
 Render de app nativo não passa por browser. Receita:
 
 - Capturar a janela real: `screencapture -l <windowid>`, com o id vindo de `CGWindowListCopyWindowInfo` (filtrar pelo nome do processo). Listar com `.optionAll`, não só as janelas visíveis na tela: a captura por id funciona com a janela atrás de outras. O modo de QA em segundo plano usa `orderBack` no lugar de `makeKeyAndOrderFront` e não chama `NSApp.activate`.
-- Duas larguras: a janela padrão e a **janela mínima**, que é o "mobile" do desktop. Nas duas, modo claro e escuro.
+- Duas larguras: a janela padrão e a **janela mínima**, que é o "mobile" do desktop. Nas duas, modo claro e escuro. Produto com janela redimensionável acrescenta uma captura **larga**: defeito de alinhamento de container flexível só aparece quando sobra espaço.
+- **Frame flexível declara alinhamento.** Coluna ou bloco que se estica (`.frame(maxWidth: .infinity)` e equivalentes) declara o alinhamento do conteúdo, por exemplo `alignment: .topLeading`. Porquê: sem ele o conteúdo é centrado no espaço que sobra, e o alinhamento do container pai não corrige; o topo de colunas vizinhas desencontra só em janela larga, fora do tamanho em que a bateria de telas captura. Prova: régua que mede a mesma borda (topo de colunas vizinhas) em pelo menos dois tamanhos de janela, com a diferença dentro da tolerância em ambos.
 - Lado a lado com a referência, na resolução real (sem escala), mesma tela e mesmo estado.
 - Conferir que toda descrição de uso do Info.plist tem o entitlement correspondente na assinatura (`codesign -d --entitlements - --xml`). Com hardened runtime, permissão sem entitlement é negada sem janela e sem erro: o botão "Conectar" simplesmente não faz nada. O `hm_gate` faz esse check.
 - Conferir o SDK gravado no binário (`otool -l` em `LC_BUILD_VERSION`, `sdk` maior ou igual ao sistema alvo): SDK antigo desenha chrome legado.
