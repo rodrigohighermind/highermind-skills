@@ -12,6 +12,54 @@ enum Appearance: String, CaseIterable, Identifiable {
 final class MainWindowController: NSObject, NSWindowDelegate {
     private var window: NSWindow?
     private var appearanceObserver: NSObjectProtocol?
+    private var titleClickMonitor: Any?
+    private var preZoomFrame: NSRect?
+
+    /// Maximize to the screen's usable area, or back to the size it had before. Explicit because AppKit's zoom only
+    /// restores when the frame equals its standard frame exactly, which a restored autosaved size can miss.
+    private func toggleZoom(_ w: NSWindow) {
+        guard let target = w.screen?.visibleFrame else { return }
+        let atTarget = abs(w.frame.minX - target.minX) < 2 && abs(w.frame.maxY - target.maxY) < 2
+            && abs(w.frame.width - target.width) < 2
+        if atTarget, let prev = preZoomFrame {
+            preZoomFrame = nil
+            w.setFrame(prev, display: true, animate: true)
+        } else {
+            preZoomFrame = w.frame
+            w.setFrame(target, display: true, animate: true)
+        }
+    }
+
+    /// With a transparent title bar and content underneath, SwiftUI swallows the double-click the system uses to zoom.
+    /// A double-click in the free band does what the user chose in System Settings (zoom by default, minimize, or
+    /// nothing). Returns true when the click was handled.
+    private func titleDoubleClick(clicks: Int, at p: NSPoint, windowNumber: Int) -> Bool {
+        guard let w = window, windowNumber == w.windowNumber, clicks == 2,
+              TitleBand.contains(p, windowSize: w.frame.size) else { return false }
+        switch UserDefaults.standard.string(forKey: "AppleActionOnDoubleClick") {
+        case "Minimize": w.miniaturize(nil)
+        case "None": return false
+        default: toggleZoom(w)
+        }
+        return true
+    }
+
+    /// QA hook: APP_DEMO_TITLE_DOUBLE_CLICK=1 sends two real double-clicks through the event queue (zoom, then back)
+    /// and prints the window frame before, between and after, so the behavior is proven without touching the pointer.
+    private func runTitleDoubleClickDemo() {
+        guard ProcessInfo.processInfo.environment["APP_DEMO_TITLE_DOUBLE_CLICK"] == "1", let w = window else { return }
+        func frame(_ label: String) { print("\(label): \(NSStringFromRect(w.frame))"); fflush(stdout) }
+        func doubleClick() {
+            let at = NSPoint(x: w.frame.width / 2, y: w.frame.height - WindowLayout.titleBarHeight / 2)
+            if let e = NSEvent.mouseEvent(with: .leftMouseDown, location: at, modifierFlags: [], timestamp: ProcessInfo.processInfo.systemUptime,
+                                          windowNumber: w.windowNumber, context: nil, eventNumber: 0, clickCount: 2, pressure: 1) {
+                NSApp.postEvent(e, atStart: false)
+            }
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { frame("before"); doubleClick() }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { frame("zoomed"); doubleClick() }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { frame("restored"); NSApp.terminate(nil) }
+    }
 
     func show() {
         if window == nil {
@@ -30,7 +78,13 @@ final class MainWindowController: NSObject, NSWindowDelegate {
             w.delegate = self
             w.isReleasedWhenClosed = false
             window = w
+            titleClickMonitor = NSEvent.addLocalMonitorForEvents(matching: .leftMouseDown) { [weak self] e in
+                let clicks = e.clickCount, p = e.locationInWindow, n = e.windowNumber
+                let handled = MainActor.assumeIsolated { self?.titleDoubleClick(clicks: clicks, at: p, windowNumber: n) ?? false }
+                return handled ? nil : e
+            }
             applyAppearance()
+            runTitleDoubleClickDemo()
             appearanceObserver = NotificationCenter.default.addObserver(
                 forName: UserDefaults.didChangeNotification, object: nil, queue: .main) { [weak self] _ in
                 MainActor.assumeIsolated { self?.applyAppearance() }
@@ -207,7 +261,7 @@ private struct BarIcon<Label: View>: View {
                 .background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(hovering ? Tokens.hover : .clear))
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.clickable)
         .help(help)
         .onHover { hovering = $0 }
         .animation(.easeOut(duration: 0.12), value: hovering)
@@ -272,7 +326,7 @@ private struct NavItem: View {
                 .fill(selected ? Tokens.hover : (hovering ? Tokens.hover.opacity(0.55) : .clear)))
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.clickable)
         .onHover { hovering = $0 }
     }
 }
@@ -294,7 +348,7 @@ private struct HomePage: View {
                         .padding(.horizontal, 16).frame(height: 36)
                         .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(Tokens.ink))
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.clickable)
                 .padding(.top, 24)
             }
             .padding(.horizontal, 48).padding(.top, 44).padding(.bottom, 48)
@@ -312,7 +366,7 @@ private struct Scrim: View {
         Color.black.opacity(scheme == .dark ? 0.5 : 0.3)
             .ignoresSafeArea()
             .contentShape(Rectangle())
-            .onTapGesture(perform: onTap)
+            .onTapGesture(perform: onTap)  // pointer: exceção, é o fundo da janela inteira, não um alvo
     }
 }
 
@@ -328,7 +382,7 @@ private struct ExampleModal: View {
                     Image(systemName: "xmark").font(.system(size: 13, weight: .medium)).foregroundStyle(Tokens.ink2)
                         .frame(width: 28, height: 28).contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.clickable)
                 .keyboardShortcut(.cancelAction)
                 .help("Fechar (Esc)")
             }

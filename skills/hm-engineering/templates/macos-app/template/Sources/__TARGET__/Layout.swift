@@ -31,3 +31,19 @@ enum TrafficLightLayout {
         CGPoint(x: firstCenterX + spacing * CGFloat(index), y: centerYFromTop)
     }
 }
+
+/// The free band of the title bar: a double-click there does what the user chose in System Settings
+/// (zoom by default). Never on the window controls nor on the right-hand icons.
+enum TitleBand {
+    /// Past the last window control, plus half a hit area and a gap.
+    static let start: CGFloat = TrafficLightLayout.center(index: 2).x + 11 + 6
+    /// Clear of the right-hand icon's 22 pt hit area.
+    static let trailingReserve: CGFloat = TrafficLightLayout.trailingIconCenterFromEdge + 11 + 6
+
+    /// `point` in window coordinates (origin bottom-left), as AppKit reports clicks.
+    static func contains(_ point: CGPoint, windowSize: CGSize) -> Bool {
+        let fromTop = windowSize.height - point.y
+        return fromTop >= 0 && fromTop <= WindowLayout.titleBarHeight
+            && point.x > start && point.x < windowSize.width - trailingReserve
+    }
+}

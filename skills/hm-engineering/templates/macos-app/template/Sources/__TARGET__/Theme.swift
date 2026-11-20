@@ -47,6 +47,31 @@ enum Motion {
     static func scaled(_ seconds: Double) -> Double { seconds * slow }
 }
 
+/// Every clickable shows the pointing hand. One style for every button (never `.plain` item by item);
+/// disabled falls back to the arrow. Rows and cards that are not a Button use `.clickable()`.
+struct ClickableStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View { Pressable(configuration: configuration) }
+
+    private struct Pressable: View {
+        let configuration: ButtonStyleConfiguration
+        @Environment(\.isEnabled) private var enabled
+        var body: some View {
+            configuration.label
+                .opacity(configuration.isPressed ? 0.85 : 1)
+                .pointerStyle(enabled ? .link : nil)
+        }
+    }
+}
+
+extension ButtonStyle where Self == ClickableStyle {
+    static var clickable: ClickableStyle { ClickableStyle() }
+}
+
+extension View {
+    /// Pointing hand for a clickable that is not a Button (row, card, custom control).
+    func clickable(_ enabled: Bool = true) -> some View { pointerStyle(enabled ? .link : nil) }
+}
+
 extension NSColor {
     convenience init(hex: UInt32) {
         self.init(srgbRed: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255,

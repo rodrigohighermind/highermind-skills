@@ -5,6 +5,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let main = MainWindowController()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        MainMenu.install(appName: "__APP_NAME__")
         main.show()
         // Smoke hook: APP_SMOKE=1 opens the window and quits cleanly after 2 s (exit 0 = launch works).
         if ProcessInfo.processInfo.environment["APP_SMOKE"] == "1" {

@@ -15,11 +15,13 @@ O gerador troca nome visível (aceita espaço e acento), módulo Swift e bundle 
 |---|---|
 | Build | `platforms: .macOS("26.0")`: o binário grava o SDK atual (com piso antigo o sistema desenha chrome legado). Zero warning. |
 | Janela | botões nativos na geometria de `Layout.swift`, reaplicada em todo resize; chrome segue o sistema, conteúdo segue o tema; tamanho mínimo honesto; barra lateral recolhível; conteúdo centraliza quando sobra largura |
+| Menu e gestos | menu principal com Editar padrão (sem ele ⌘V, ⌘C, ⌘X, ⌘A e ⌘Z não chegam a nenhum campo de texto, nem para quem cola nele); duplo clique na faixa livre da barra de título segue a preferência do sistema (ampliar, minimizar ou nada) e volta ao tamanho anterior |
+| Clique | todo botão usa `.buttonStyle(.clickable)` e toda linha ou cartão clicável `.clickable()`: mãozinha, seta quando desabilitado. Teste do app reprova `.plain`, `.borderless` e toque sem o estilo; exceção declarada na linha com `// pointer: exceção` |
 | Tokens | cores dinâmicas e papéis tipográficos em `Theme.swift`; curva de movimento nomeada |
 | Camada por cima | fundo em camada própria só com fade cobrindo a janela inteira; caixa sem fantasma, com mola; saída junto; reduzir movimento = fade |
 | Instalação | assina com "Apple Development" se houver (mantém permissões entre builds); senão ad-hoc com aviso; verificação de vida |
 | Permissões | `permissions.json` é a fonte única: gera as descrições de uso do Info.plist **e** os entitlements da assinatura (hardened runtime). O install confere o app assinado e recusa instalar se faltar entitlement, porque a permissão seria negada sem janela e sem erro. HealthKit, câmera, calendário, contatos, localização, fotos e microfone mapeados. |
-| QA | `APP_PREVIEW`, `APP_SLOW_MOTION`, `APP_DEMO_MODAL`, `APP_SMOKE`; `tools/design_parity.py` (≤1 pt, com contraprova); evidência em `.orbit/review/` |
+| QA | `APP_PREVIEW`, `APP_SLOW_MOTION`, `APP_DEMO_MODAL`, `APP_DEMO_TITLE_DOUBLE_CLICK` (dois cliques duplos reais, imprime o frame antes, ampliado e restaurado), `APP_SMOKE`; `tools/design_parity.py` (≤1 pt, com contraprova); evidência em `.orbit/review/` |
 | Gate | `hm-quality.json`: typecheck, lint (release sem warning), `swift test`, smoke e `macos_apps` para o check de SDK |
 
 ## Testes do starter
