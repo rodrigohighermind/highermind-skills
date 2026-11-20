@@ -46,6 +46,12 @@ Comunicação: sempre separar "espaço liberado dentro do Docker" de "espaço de
 - Erro de produção chega em alguém (alerta, email, canal); não morre em arquivo de log que ninguém lê.
 - Jobs agendados (launchd/cron) logam cada run com resultado; job que falha silenciosamente por semanas é incidente em câmera lenta. Verificação: data do último log de sucesso, não existência do plist.
 
+## Job agendado e processo externo
+
+- **Script que roda pelo agendador se prova rodando pelo agendador.** Disparar o job real (`launchctl kickstart -k gui/$UID/<label>` ou equivalente) e ler o estado que ele gravou (log, arquivo de resultado, registro no banco); rodar no terminal não conta. Porque o agendador tem outro ambiente: `PATH` mínimo, sem shell de login, outro diretório de trabalho, e a falha só existe lá. Consequência no código: nada de executável resolvido pelo `PATH` (chamar o próprio runtime pelo caminho do processo atual, como `process.execPath` ou `sys.executable`, e o resto por caminho absoluto). Prova: o log do disparo pelo agendador com resultado de sucesso, de data posterior à mudança.
+- **Filho destacado não segura o pipe do pai.** Processo que sobe outro de vida longa (navegador, servidor, daemon) e lê a resposta por pipe espera o filho fechar o pipe herdado, e o filho não fecha. Resposta volta por arquivo (ou socket) e o filho sobe com stdio desligado do pai. Porque o leitor só recebe fim de arquivo quando todo processo que herdou o pipe sai. Prova: a chamada retorna com o processo filho ainda vivo.
+- **Tempo de espera sai de medição, não de palpite.** Antes de fixar o limite de espera de um processo externo, medir o maior tempo observado, inclusive a primeira execução a frio, e fixar o limite acima dele com folga declarada. O erro separa as causas: "não abriu dentro do tempo" é diferente de "abriu sem sessão" ou "respondeu com erro". Porque um limite curto disfarçado de outra falha manda o diagnóstico para o lugar errado. Prova: a medição registrada ao lado da constante e um teste ou log que mostra cada causa com mensagem própria.
+
 ## Diagnóstico em produção com menor blast radius
 
 - Ler antes de tocar: logs, health, métricas, `git log` do deploy recente. Read-only primeiro.
