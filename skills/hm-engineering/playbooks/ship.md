@@ -80,6 +80,8 @@ Seção 4 inteira, abaixo.
 - ALERTA: `.env` copiado pro bundle (`Resources/`) vaza secret se o app for distribuído. Documentar.
 - Native modules (sqlite, sharp) com rebuild de ABI correto pro Electron; versão do Electron sem CVE HIGH.
 - Bundle id (macOS) / `setAppUserModelId` (Windows) corretos.
+- App com janela no macOS tem menu principal com Editar padrão; sem ele, colar, copiar, recortar, selecionar tudo e desfazer morrem em todo campo de texto. O smoke confere o item de colar na barra de menus pela acessibilidade. Regra em `hm-design/playbooks/review.md` §6c.
+- **Quem insere texto em outro app não confia no atalho de colar sintético.** Ferramenta que escreve no app em foco (ditado, snippet, expansão de texto) confere antes, pela barra de menus do app alvo lida por acessibilidade, se existe item de colar com a tecla V e modificador só Comando. Sem o item, insere pelo texto selecionado do elemento em foco (`kAXSelectedTextAttribute`) ou digita os caracteres como evento de teclado Unicode. Porquê: o atalho sintético é entregue sem erro mesmo quando o app alvo não tem quem o trate, e o texto some em silêncio. Prova: teste contra um app alvo sem menu Editar e outro com, lendo o valor do campo depois da inserção nos dois.
 - Smoke ou QA com input sintético (clique, arraste, tecla) checa antes se a tela está bloqueada; bloqueada, a interação é `NOT_VERIFIED`, não resultado. Regra em `hm-design/playbooks/review.md` §3.
 
 ### Mobile (Expo/RN)
