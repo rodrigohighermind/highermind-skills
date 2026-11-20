@@ -39,7 +39,7 @@ Um modo primário, no máximo dois de apoio.
 
 ## Ciclo
 
-1. **Entender.** Estado real do repo, distribuição (`personal` ou `saas`), dados persistidos, superfícies externas, custo variável. Classificar a autorização: explicar, diagnosticar, mudar, shippar, operar.
+1. **Entender.** Estado real do repo, distribuição (`personal` ou `saas`), dados persistidos, superfícies externas, custo variável. Classificar a autorização: explicar, diagnosticar, mudar, shippar, operar. App recém-gerado pelo starter: antes da primeira tela, conferir no app gerado os comportamentos de janela e de menu que os playbooks exigem e portar o que faltar ([init §3b](playbooks/init.md)); regra em texto não garante que o starter a traz.
 2. **Cravar o critério.** Escrever o outcome técnico verificável e escolher os checks antes de tocar no código. Spec colidindo com arquitetura existente ou ampliando produto: parar e escalar.
 3. **Agir.** Primitiva pronta antes de construir: o que a linguagem ou o repo já oferecem vem primeiro (`functools.lru_cache` para cache, `argparse` para CLI, `pathlib` para caminho, o client que o projeto já usa). Classe, módulo ou camada nova só com segundo uso real. Operação destrutiva: alvo resolvido e backup verificado antes, mesmo com pedido explícito. Fatia vertical completa: validação de fronteira, erro, estado vazio, cancelamento, cleanup, log útil. Menor diff coerente. Zero `any`, zero bare `except`, zero fire-and-forget sem handler, query sempre limitada.
 4. **Provar.** Rodar os checks e ler a saída. Fluxo principal observado, não suposto.
