@@ -34,6 +34,16 @@ final class MainWindowController: NSObject, NSWindowDelegate {
     /// With a transparent title bar and content underneath, SwiftUI swallows the double-click the system uses to zoom.
     /// A double-click in the free band does what the user chose in System Settings (zoom by default, minimize, or
     /// nothing). Returns true when the click was handled.
+    private func titleMouseDown(_ e: NSEvent) -> Bool {
+        guard let w = window, e.windowNumber == w.windowNumber,
+              TitleBand.contains(e.locationInWindow, windowSize: w.frame.size) else { return false }
+        if e.clickCount == 1 {  // the title band moves the window; the rest of the content keeps its drags
+            w.performDrag(with: e)
+            return true
+        }
+        return titleDoubleClick(clicks: e.clickCount, at: e.locationInWindow, windowNumber: e.windowNumber)
+    }
+
     private func titleDoubleClick(clicks: Int, at p: NSPoint, windowNumber: Int) -> Bool {
         guard let w = window, windowNumber == w.windowNumber, clicks == 2,
               TitleBand.contains(p, windowSize: w.frame.size) else { return false }
@@ -70,7 +80,9 @@ final class MainWindowController: NSObject, NSWindowDelegate {
             w.titlebarAppearsTransparent = true
             w.titleVisibility = .hidden
             w.titlebarSeparatorStyle = .none
-            w.isMovableByWindowBackground = true
+            // Only the title band drags the window (see titleMouseDown). Dragging by the whole background
+            // steals every drag from the content: selecting text moved the window instead.
+            w.isMovableByWindowBackground = false
             w.minSize = NSSize(width: WindowLayout.minWidth, height: WindowLayout.minHeight)
             w.title = "__APP_NAME__"
             w.contentView = NSHostingView(rootView: RootView())
@@ -80,8 +92,7 @@ final class MainWindowController: NSObject, NSWindowDelegate {
             w.isReleasedWhenClosed = false
             window = w
             titleClickMonitor = NSEvent.addLocalMonitorForEvents(matching: .leftMouseDown) { [weak self] e in
-                let clicks = e.clickCount, p = e.locationInWindow, n = e.windowNumber
-                let handled = MainActor.assumeIsolated { self?.titleDoubleClick(clicks: clicks, at: p, windowNumber: n) ?? false }
+                let handled = MainActor.assumeIsolated { self?.titleMouseDown(e) ?? false }
                 return handled ? nil : e
             }
             applyAppearance()
@@ -91,8 +102,14 @@ final class MainWindowController: NSObject, NSWindowDelegate {
                 MainActor.assumeIsolated { self?.applyAppearance() }
             }
         }
-        window?.makeKeyAndOrderFront(nil)
-        NSApp.activate()
+        // QA hook: APP_BACKGROUND=1 opens the window behind everything and never takes focus,
+        // so screens can be captured while someone is using the Mac.
+        if ProcessInfo.processInfo.environment["APP_BACKGROUND"] == "1" {
+            window?.orderBack(nil)
+        } else {
+            window?.makeKeyAndOrderFront(nil)
+            NSApp.activate()
+        }
         placeTrafficLights()
         DispatchQueue.main.async { [weak self] in self?.placeTrafficLights() }  // after the first layout pass
     }
@@ -148,6 +165,7 @@ enum Page: String, CaseIterable, Identifiable {
 struct RootView: View {
     @State private var page = Page(rawValue: ProcessInfo.processInfo.environment["APP_PREVIEW"] ?? "") ?? .home
     @State private var modalOpen = false
+    @State private var settingsSection = SettingsSection.appearance
     @AppStorage("sidebarCollapsed") private var sidebarCollapsed = false
     @AppStorage("appearance") private var appearance = Appearance.system.rawValue
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -168,6 +186,7 @@ struct RootView: View {
                         }
                     }
                     .id(page)
+                    .textSelection(.enabled)  // content text is selectable and copyable, like any Mac document
                     .transition(.opacity)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(Tokens.canvas)
@@ -186,7 +205,7 @@ struct RootView: View {
                 Scrim(onTap: closeModal)
                     .transition(.opacity.animation(.easeOut(duration: Motion.scaled(0.24))))
                     .zIndex(1)
-                ExampleModal(onClose: closeModal)
+                SettingsModal(section: $settingsSection, onClose: closeModal)
                     .transition(reduceMotion ? .opacity : .asymmetric(
                         // Per-property animations: opacity is quick (no ghosting of the page behind),
                         // scale and lift carry the motion; exit leaves together with the scrim.
@@ -207,11 +226,12 @@ struct RootView: View {
             if Motion.slow != 1 { t.animation = t.animation?.speed(1 / Motion.slow) }
         }
         .onAppear(perform: runDemoIfRequested)
+        .onReceive(NotificationCenter.default.publisher(for: MainMenu.openSettings)) { _ in withAnimation { modalOpen = true } }
     }
 
     private func closeModal() { withAnimation { modalOpen = false } }
 
-    /// QA hook: APP_DEMO_MODAL=1 opens and closes the modal on a timer (record it frame by frame).
+    /// QA hook: APP_DEMO_MODAL=1 opens and closes the settings layer on a timer (record it frame by frame).
     private func runDemoIfRequested() {
         guard ProcessInfo.processInfo.environment["APP_DEMO_MODAL"] == "1" else { return }
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { withAnimation { modalOpen = true } }
@@ -341,11 +361,11 @@ private struct HomePage: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 Text("Início").font(Typography.pageTitle).foregroundStyle(Tokens.ink)
-                Text("Ponto de partida: janela nativa, barra lateral recolhível, tema claro e escuro e uma camada por cima com transição correta.")
+                Text("Ponto de partida: janela nativa, barra lateral recolhível, tema claro e escuro e Ajustes numa camada por cima (⌘,), com transição correta.")
                     .font(Typography.body).foregroundStyle(Tokens.ink2).lineSpacing(3)
                     .frame(maxWidth: 640, alignment: .leading).padding(.top, 8)
                 Button(action: openModal) {
-                    Text("Abrir exemplo").font(Typography.bodyEmphasis).foregroundStyle(Tokens.canvas)
+                    Text("Abrir ajustes").font(Typography.bodyEmphasis).foregroundStyle(Tokens.canvas)
                         .padding(.horizontal, 16).frame(height: 36)
                         .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(Tokens.ink))
                 }
@@ -371,30 +391,111 @@ private struct Scrim: View {
     }
 }
 
-private struct ExampleModal: View {
+// MARK: - Settings
+
+/// The house settings layer: a 960 x 660 card over the dimmed window, a 220 pt section column on the left,
+/// one control per row on the right. Add sections to the enum; the column and the page pick them up.
+enum SettingsSection: String, CaseIterable, Identifiable {
+    case appearance, about
+    var id: String { rawValue }
+    var title: String {
+        switch self {
+        case .appearance: return "Aparência"
+        case .about: return "Sobre"
+        }
+    }
+    var symbol: String {
+        switch self {
+        case .appearance: return "circle.lefthalf.filled"
+        case .about: return "info.circle"
+        }
+    }
+}
+
+private struct SettingsModal: View {
+    @Binding var section: SettingsSection
     let onClose: () -> Void
+    @AppStorage("appearance") private var appearance = Appearance.system.rawValue
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("Exemplo").font(Typography.sectionTitle).foregroundStyle(Tokens.ink)
-                Spacer()
-                Button(action: onClose) {
-                    Image(systemName: "xmark").font(.system(size: 13, weight: .medium)).foregroundStyle(Tokens.ink2)
-                        .frame(width: 28, height: 28).contentShape(Rectangle())
+        HStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("AJUSTES").font(Typography.caption.weight(.medium)).tracking(1.1).foregroundStyle(Tokens.ink3)
+                    .padding(.leading, 10).padding(.bottom, 8)
+                ForEach(SettingsSection.allCases) { s in
+                    NavItem(title: s.title, symbol: s.symbol, selected: s == section) {
+                        withAnimation(Motion.crossfade) { section = s }
+                    }
                 }
-                .buttonStyle(.clickable)
-                .keyboardShortcut(.cancelAction)
-                .help("Fechar (Esc)")
+                Spacer()
+                Text("__APP_NAME__").font(Typography.caption.weight(.medium)).foregroundStyle(Tokens.ink3).padding(.leading, 10)
             }
-            Text("Uma camada por cima: o fundo só escurece e cobre a janela inteira; a caixa aparece sem deixar o texto de trás vazar e sai junto com o fundo.")
-                .font(Typography.body).foregroundStyle(Tokens.ink2).lineSpacing(3)
-                .fixedSize(horizontal: false, vertical: true)
+            .padding(.vertical, 22).padding(.horizontal, 12)
+            .frame(width: SettingsLayout.sidebarWidth)
+            .background(Tokens.chrome)
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    HStack {
+                        Text(section.title).font(Typography.pageTitle).foregroundStyle(Tokens.ink)
+                        Spacer()
+                        Button(action: onClose) {
+                            Image(systemName: "xmark").font(.system(size: 13, weight: .medium)).foregroundStyle(Tokens.ink2)
+                                .frame(width: 28, height: 28).contentShape(Rectangle())
+                        }
+                        .buttonStyle(.clickable)
+                        .keyboardShortcut(.cancelAction)
+                        .help("Fechar (Esc)")
+                    }
+                    .padding(.bottom, 22)
+                    content.id(section).transition(.opacity)
+                }
+                .padding(28)
+            }
+            .frame(maxWidth: .infinity)
+            .background(Tokens.canvas)
         }
-        .padding(24)
-        .frame(width: 480)
-        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Tokens.canvas))
-        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Tokens.border, lineWidth: 1))
+        .frame(maxWidth: SettingsLayout.width, maxHeight: SettingsLayout.height)
+        .clipShape(RoundedRectangle(cornerRadius: SettingsLayout.radius, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: SettingsLayout.radius, style: .continuous).strokeBorder(Tokens.border, lineWidth: 1))
         .shadow(color: .black.opacity(0.18), radius: 40, y: 12)
+        .padding(SettingsLayout.windowMargin)
+    }
+
+    @ViewBuilder private var content: some View {
+        switch section {
+        case .appearance:
+            SettingRow(title: "Tema", detail: "Claro, escuro ou igual ao sistema. A moldura da janela segue o sistema; o conteúdo segue esta escolha.") {
+                Picker("Tema", selection: $appearance) {
+                    Text("Claro").tag(Appearance.light.rawValue)
+                    Text("Escuro").tag(Appearance.dark.rawValue)
+                    Text("Sistema").tag(Appearance.system.rawValue)
+                }
+                .pickerStyle(.segmented).labelsHidden().frame(width: 240).clickable()
+            }
+        case .about:
+            SettingRow(title: "__APP_NAME__", detail: "Versão \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "de desenvolvimento")") {
+                EmptyView()
+            }
+        }
+    }
+}
+
+/// One setting: title and a line of detail on the left, a single control on the right.
+private struct SettingRow<Trailing: View>: View {
+    let title: String
+    let detail: String
+    @ViewBuilder let trailing: Trailing
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 20) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title).font(Typography.bodyEmphasis).foregroundStyle(Tokens.ink)
+                Text(detail).font(Typography.caption).foregroundStyle(Tokens.ink3).fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer()
+            trailing
+        }
+        .padding(.vertical, 16)
     }
 }

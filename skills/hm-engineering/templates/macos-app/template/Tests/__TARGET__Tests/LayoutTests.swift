@@ -43,6 +43,35 @@ import Testing
         #expect(ZoomToggle.next(frame: screen, screen: screen, previous: screen) != screen)        // stale saved frame
     }
 
+    @Test func settingsCardFitsTheDefaultWindowWithItsMargin() {
+        #expect(SettingsLayout.width + 2 * SettingsLayout.windowMargin <= WindowLayout.defaultSize.width)
+        #expect(SettingsLayout.height + 2 * SettingsLayout.windowMargin <= WindowLayout.defaultSize.height)
+        #expect(SettingsLayout.sidebarWidth < SettingsLayout.width / 3)
+    }
+
+    @MainActor @Test func settingsOpenWithCommandComma() {
+        _ = NSApplication.shared
+        MainMenu.install(appName: "Teste")
+        let app = NSApp.mainMenu?.items.first?.submenu
+        let item = app?.items.first { $0.keyEquivalent == "," }
+        #expect(item?.title == "Ajustes…")
+        #expect(item?.keyEquivalentModifierMask == [.command])
+    }
+
+    /// Dragging by the window background steals the drag from the content: selecting text moves the window.
+    /// Only the title band drags (TitleBand + performDrag), and page text is selectable.
+    @Test func dragsSelectTextInsteadOfMovingTheWindow() throws {
+        let sources = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+            .deletingLastPathComponent().appendingPathComponent("Sources")
+        var all = ""
+        for case let url as URL in FileManager.default.enumerator(at: sources, includingPropertiesForKeys: nil)! where url.pathExtension == "swift" {
+            all += try String(contentsOf: url, encoding: .utf8)
+        }
+        #expect(!all.contains("isMovableByWindowBackground = true"))
+        #expect(all.contains("performDrag(with:"))
+        #expect(all.contains(".textSelection(.enabled)"))
+    }
+
     @MainActor @Test func menuBarCarriesTheEditShortcuts() {
         _ = NSApplication.shared
         MainMenu.install(appName: "Teste")

@@ -5,11 +5,22 @@ import AppKit
 /// for anything that pastes into it, like dictation).
 @MainActor
 enum MainMenu {
+    /// Posted by the "Ajustes…" item (⌘,); the root view opens the settings layer.
+    nonisolated static let openSettings = Notification.Name("openSettings")
+
+    @MainActor final class Opener: NSObject {
+        static let shared = Opener()
+        @objc func openSettings() { NotificationCenter.default.post(name: MainMenu.openSettings, object: nil) }
+    }
+
     static func install(appName: String) {
         let main = NSMenu()
 
         let app = NSMenu()
         app.addItem(withTitle: "Sobre o \(appName)", action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: "")
+        app.addItem(.separator())
+        let settings = app.addItem(withTitle: "Ajustes…", action: #selector(Opener.openSettings), keyEquivalent: ",")
+        settings.target = Opener.shared
         app.addItem(.separator())
         app.addItem(withTitle: "Ocultar o \(appName)", action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
         let others = app.addItem(withTitle: "Ocultar outros", action: #selector(NSApplication.hideOtherApplications(_:)), keyEquivalent: "h")

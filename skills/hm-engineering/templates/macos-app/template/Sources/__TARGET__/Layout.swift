@@ -67,3 +67,13 @@ enum ZoomToggle {
         return CGRect(x: screen.midX - size.width / 2, y: screen.midY - size.height / 2, width: size.width, height: size.height)
     }
 }
+
+/// The settings layer, measured on the house reference (card, section column, margin to the window edge).
+enum SettingsLayout {
+    static let width: CGFloat = 960
+    static let height: CGFloat = 660
+    static let sidebarWidth: CGFloat = 220
+    static let radius: CGFloat = 14
+    /// The card shrinks to keep this margin when the window is smaller than card + margins.
+    static let windowMargin: CGFloat = 24
+}

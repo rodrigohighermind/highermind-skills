@@ -31,6 +31,10 @@ KEY_REMOVAL_PATTERNS = (
     re.compile(r"['\"](?:ANTHROPIC|OPENAI)_API_KEY['\"][^#\n]*\b(?:not\s+in|!=)\b"),
     re.compile(r"\b(?:unset|delete)\s+(?:process\.env\.)?(?:ANTHROPIC|OPENAI)_API_KEY\b"),
     re.compile(r"\bprocess\.env\.(?:ANTHROPIC|OPENAI)_API_KEY\s*=\s*(?:undefined|null)\b"),
+    re.compile(r"\bdelete\s+[\w.]+(?:\.|\[\s*['\"])(?:ANTHROPIC|OPENAI)_API_KEY\b"),
+    # Swift: env.removeValue(forKey: "...KEY") e env["...KEY"] = nil
+    re.compile(r"\bremoveValue\(\s*forKey:\s*\"(?:ANTHROPIC|OPENAI)_API_KEY\""),
+    re.compile(r"\[\s*\"(?:ANTHROPIC|OPENAI)_API_KEY\"\s*\]\s*=\s*nil\b"),
 )
 QUALITY_ROLES = ("typecheck", "lint", "test", "smoke")
 SOFTWARE_MARKERS = ("pyproject.toml", "setup.py", "requirements.txt", "Package.swift", "Cargo.toml", "go.mod", "deno.json", "Gemfile", "composer.json", "pom.xml", "build.gradle", "build.gradle.kts", "mix.exs", "Makefile")
@@ -366,7 +370,17 @@ def source_files(root: Path) -> list[Path]:
     return sorted(path for path in root.rglob("*") if path.is_file() and path.suffix.lower() in SOURCE_SUFFIXES and not any(part in IGNORED_PARTS for part in path.parts))
 
 
-KEY_LIST_DEFINITION = re.compile(r"^\s*([A-Z][A-Z0-9_]*)\s*(?::[^=]+)?=\s*[\(\[\{][^#\n]*(?:ANTHROPIC|OPENAI)_API_KEY")
+KEY_LIST_DEFINITION = re.compile(
+    r"^\s*(?:(?:private|fileprivate|static|public|export)\s+)*(?:let\s+|var\s+|const\s+)?([A-Za-z_]\w*)\s*(?::[^=]+)?=\s*[\(\[\{][^#\n]*(?:ANTHROPIC|OPENAI)_API_KEY"
+)
+INLINE_KEY_LOOP = re.compile(r"\bfor\s+(\w+)\s+in\s+[\(\[][^\n]*(?:ANTHROPIC|OPENAI)_API_KEY")
+
+
+def removes_var(var: str, text: str) -> bool:
+    """O laço usa a variável para tirar a key do ambiente (Python, JavaScript ou Swift)."""
+    v = re.escape(var)
+    return bool(re.search(rf"\.pop\(\s*{v}\b|\bdel\s+\w+\[\s*{v}\s*\]|\bdelete\s+[\w.]+\[\s*{v}\s*\]"
+                          rf"|\bremoveValue\(\s*forKey:\s*{v}\s*\)|\[\s*{v}\s*\]\s*=\s*nil\b", text))
 
 
 def key_removal_lists(text: str) -> set[str]:
@@ -380,10 +394,15 @@ def key_removal_lists(text: str) -> set[str]:
             found.add(match.group(1))
             continue
         for loop in re.finditer(rf"\bfor\s+(\w+)\s+in\s+[\(\[]?\*?{name}\b", text):
-            var = re.escape(loop.group(1))
-            if re.search(rf"\.pop\(\s*{var}\b|\bdel\s+\w+\[\s*{var}\s*\]", text[loop.end():loop.end() + 400]):
+            if removes_var(loop.group(1), text[loop.end():loop.end() + 400]):
                 found.add(match.group(1))
     return found
+
+
+SENTINEL_HINT = (
+    " · se a linha só REMOVE a key do ambiente, escreva a remoção de forma reconhecível (pop, del, filtro com !=,"
+    " removeValue(forKey:), = nil); se é key falsa de teste, marque a linha com `# hm-gate: sentinel <motivo>`"
+)
 
 
 def scan_llm_api_cost(root: Path, distribution: str) -> Check:
@@ -399,7 +418,12 @@ def scan_llm_api_cost(root: Path, distribution: str) -> Check:
             has_client = any(pattern.search(line) for pattern in LLM_CLIENT_PATTERNS)
             has_key = bool(LLM_KEY_PATTERN.search(line))
             list_definition = KEY_LIST_DEFINITION.match(line)
-            explicit_removal = any(pattern.search(line) for pattern in KEY_REMOVAL_PATTERNS) or bool(list_definition and list_definition.group(1) in removal_lists)
+            inline_loop = INLINE_KEY_LOOP.search(line)
+            explicit_removal = (
+                any(pattern.search(line) for pattern in KEY_REMOVAL_PATTERNS)
+                or bool(list_definition and list_definition.group(1) in removal_lists)
+                or bool(inline_loop and removes_var(inline_loop.group(1), line[inline_loop.end():] + "\n" + "\n".join(text.splitlines()[line_number:line_number + 8])))
+            )
             # Exceção declarada por linha, com motivo: key falsa usada para provar que a real não vaza.
             declared_sentinel = bool(re.search(r"hm-gate:\s*sentinel\s+\S.{3,}", line)) and not has_client
             if has_client or (has_key and not explicit_removal and not declared_sentinel):
@@ -409,12 +433,13 @@ def scan_llm_api_cost(root: Path, distribution: str) -> Check:
         return Check(
             "custo LLM pessoal",
             "NOT_VERIFIED",
-            "client/env de API em teste ou fixture exige confirmação de que não faz chamada paga: " + ", ".join(test_hits),
+            "client/env de API em teste ou fixture exige confirmação de que não faz chamada paga: " + ", ".join(test_hits)
+            + SENTINEL_HINT,
         )
     if not hits:
         return Check("custo LLM pessoal", "PASS", "nenhum client/env de API paga detectado")
     if distribution == "personal":
-        return Check("custo LLM pessoal", "FAIL", "API paga em ferramenta pessoal: " + ", ".join(hits))
+        return Check("custo LLM pessoal", "FAIL", "API paga em ferramenta pessoal: " + ", ".join(hits) + SENTINEL_HINT)
     if distribution == "saas":
         return Check("custo LLM pessoal", "NOT_VERIFIED", "SaaS permite API, mas cost tracking exige revisão: " + ", ".join(hits))
     return Check("custo LLM pessoal", "NOT_VERIFIED", "classifique --distribution personal|saas: " + ", ".join(hits))
@@ -613,6 +638,21 @@ def scan_pointer_cursor(root: Path) -> Check:
     return Check("cursor de clique", "FAIL" if problems else "PASS", "\n".join(problems) if problems else "regra de mãozinha presente")
 
 
+HAND_BUILT_APP = re.compile(r"\bsetActivationPolicy\(\s*\.regular\s*\)|\bNSApplication\.shared\b")
+MENU_ASSIGNED = re.compile(r"\bmainMenu\s*=|\.commands\s*\{|\bCommandGroup\b")
+
+
+def scan_macos_main_menu(root: Path) -> Check:
+    """App AppKit montado à mão sem menu principal perde ⌘V, ⌘C, ⌘X, ⌘A e ⌘Z em todo campo de texto:
+    esses atalhos chegam pelos itens do menu Editar. O ciclo de vida SwiftUI `App` monta o menu sozinho."""
+    texts = [s.read_text(encoding="utf-8", errors="replace") for s in ui_files(root, {".swift"})]
+    if not any(HAND_BUILT_APP.search(text) for text in texts):
+        return Check("menu principal macOS", "NOT_APPLICABLE", "sem app AppKit montado à mão")
+    if any(MENU_ASSIGNED.search(text) for text in texts):
+        return Check("menu principal macOS", "PASS", "menu principal atribuído")
+    return Check("menu principal macOS", "FAIL", "app montado à mão sem NSApp.mainMenu: ⌘V/⌘C/⌘X/⌘A/⌘Z não chegam aos campos de texto; montar menu do app + Editar + Janela (ver MainMenu.swift do starter macOS)")
+
+
 def plan_checks(root: Path, base: str | None, distribution: str) -> list[Check]:
     commands = project_commands(root)
     checks = [Check(role, "NOT_VERIFIED", "planejado: " + " ".join(command)) for role, command in commands]
@@ -624,7 +664,7 @@ def plan_checks(root: Path, base: str | None, distribution: str) -> list[Check]:
     else:
         checks.append(missing_quality_check(root))
     checks.extend(scan_changed_code(root, base))
-    checks.extend([scan_rls(root), scan_llm_api_cost(root, distribution), scan_macos_sdk(root), scan_macos_entitlements(root), scan_pointer_cursor(root)])
+    checks.extend([scan_rls(root), scan_llm_api_cost(root, distribution), scan_macos_sdk(root), scan_macos_entitlements(root), scan_pointer_cursor(root), scan_macos_main_menu(root)])
     return checks
 
 
@@ -660,14 +700,18 @@ def exit_code(result: str) -> int:
     return {"PASS": 0, "FAIL": 1, "NOT_VERIFIED": 2}.get(result, 2)
 
 
+EXIT_NOTE = "saída: 0 PASS · 1 FAIL · 2 NOT_VERIFIED (pipe para grep ou tail mascara o código; leia $? do gate)"
+
+
 def render_markdown(root: Path, checks: list[Check]) -> str:
     lines = [f"VEREDICTO · {verdict(checks)}", f"ROOT · {root}", "", "EVIDÊNCIA"]
     lines.extend(f"- [{check.status}] {check.name}: {check.evidence}" for check in checks)
+    lines += ["", EXIT_NOTE]
     return "\n".join(lines)
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__, epilog=EXIT_NOTE)
     parser.add_argument("--root", type=Path, default=Path.cwd())
     parser.add_argument("--plan", action="store_true", help="Apenas listar checks; default executa os comandos descobertos")
     parser.add_argument("--base", help="Ref git explícita para definir código novo")

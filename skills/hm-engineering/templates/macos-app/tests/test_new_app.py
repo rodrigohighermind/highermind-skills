@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import sys
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -47,12 +48,40 @@ class CreateTest(unittest.TestCase):
         src = "\n".join(f.read_text(encoding="utf-8") for f in (dest / "Sources").rglob("*.swift"))
         for symbol in ("NSApp.mainMenu = main", "#selector(NSText.paste(_:))", "MainMenu.install(",
                        "enum TitleBand", "enum ZoomToggle", "preZoomFrame", "AppleActionOnDoubleClick", "addLocalMonitorForEvents(matching: .leftMouseDown)",
-                       "struct ClickableStyle", ".pointerStyle(enabled ? .link : nil)"):
+                       "struct ClickableStyle", "private struct SettingsModal", "enum SettingsLayout", "performDrag(with:", ".textSelection(.enabled)", "keyEquivalent: \",\"", ".pointerStyle(enabled ? .link : nil)"):
             self.assertIn(symbol, src)
         self.assertNotIn(".buttonStyle(.plain)", src)
+        self.assertNotIn("isMovableByWindowBackground = true", src)  # arrastar texto movia a janela
         tests = (dest / "Tests" / "ComportamentosTests" / "LayoutTests.swift").read_text(encoding="utf-8")
+        self.assertIn("interfaceTextIsNeverAbbreviated", (dest / "Tests" / "ComportamentosTests" / "WordsTests.swift").read_text(encoding="utf-8"))
         for name in ("doubleClickZoomsOnlyInTheFreeBandOfTheTitleBar", "doubleClickAlwaysChangesTheSize", "menuBarCarriesTheEditShortcuts", "everyClickableUsesThePointerStyle"):
             self.assertIn(name, tests)
+
+    def test_into_existing_adds_missing_and_keeps_what_is_there(self) -> None:
+        dest = self.root / "existente"
+        dest.mkdir()
+        subprocess.run(["git", "init", "-q"], cwd=dest, check=True)
+        (dest / "CLAUDE.md").write_text("contexto do projeto", encoding="utf-8")
+        (dest / ".gitignore").write_text(".env\n.build/\n", encoding="utf-8")
+        subprocess.run(["git", "add", "-A"], cwd=dest, check=True)
+        subprocess.run(["git", "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "hm new"], cwd=dest, check=True)
+        new_app.create("Existente", "com.example.existente", dest, into_existing=True)
+        self.assertEqual((dest / "CLAUDE.md").read_text(encoding="utf-8"), "contexto do projeto")
+        ignore = (dest / ".gitignore").read_text(encoding="utf-8").splitlines()
+        self.assertEqual(ignore[:2], [".env", ".build/"])
+        self.assertEqual(ignore.count(".build/"), 1)  # merged by line, no duplicate
+        self.assertTrue((dest / "Sources" / "Existente" / "main.swift").exists())
+        log = subprocess.run(["git", "log", "--oneline"], cwd=dest, capture_output=True, text=True, check=True).stdout
+        self.assertEqual(len(log.splitlines()), 1)  # one history, untouched
+        new_app.create("Existente", "com.example.existente", dest, into_existing=True)  # second run changes nothing
+        self.assertEqual((dest / "CLAUDE.md").read_text(encoding="utf-8"), "contexto do projeto")
+
+    def test_into_existing_requires_a_git_repo(self) -> None:
+        dest = self.root / "sem-git"
+        dest.mkdir()
+        with self.assertRaises(FileExistsError):
+            new_app.create("Sem Git", "com.example.semgit", dest, into_existing=True)
+        self.assertEqual(list(dest.iterdir()), [])
 
     def test_existing_destination_is_refused_and_untouched(self) -> None:
         dest = self.root / "existing"
