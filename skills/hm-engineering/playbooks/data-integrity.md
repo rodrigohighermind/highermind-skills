@@ -259,6 +259,7 @@ Registrar data do último drill. Multi-user/produção: drill completo ao menos 
 - Foreign keys com `ON DELETE` decidido conscientemente (CASCADE vs RESTRICT vs SET NULL), sem orphans.
 - `UNIQUE`, `NOT NULL` e `CHECK` no banco, não só na aplicação (`amount >= 0`, enum válido).
 - Optimistic concurrency (`version` ou `updated_at` no WHERE do UPDATE) onde há write concorrente.
+- **Ação só de metadado não conta como atividade.** Renomear, dar título, marcar, fixar ou arquivar preserva o `updated_at` (ou "atualizada em") que a lista usa para ordenar; só mudança de conteúdo o avança. Porquê: senão um clique de organização reordena a lista e o item salta de lugar sem o usuário ter feito nada nele. Prova: teste com itens criados em dias diferentes, renomeia o mais antigo e confere que a ordem não mudou; itens criados no mesmo instante passam mesmo com o defeito.
 - Idempotency key em operação disparada externamente (webhook, payment, email).
 - JSON persistido tem `schemaVersion` + `safeParse` (Zod/Pydantic) em toda leitura. Cast cego de `JSON.parse` é corrupção esperando data pra aparecer. Migração v1→v2 documentada e app lê ambas durante a transição.
 
