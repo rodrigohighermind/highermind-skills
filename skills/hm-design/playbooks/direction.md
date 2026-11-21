@@ -206,6 +206,7 @@ Vale para modal, sheet, dialog, popover e drawer.
 2. **O conteúdo entra com mola suave:** escala 0,96 para 1, cerca de 8 px de deslocamento e opacidade. Sai mais rápido e mais simples: cerca de 0,14 s ease-in, opacidade e escala 0,98.
 3. **Reduce motion** (`prefers-reduced-motion` ou o ajuste do sistema): só fade.
 4. **Painel desenhado dentro da view** (menu ou seletor próprio, em vez do componente do sistema): nenhuma decoração do contêiner fica numa camada acima do conteúdo; a borda vai junto do preenchimento, no fundo (`.background`, não `.overlay`). Por quê: camada sobreposta ao contêiner cruza o painel aberto. Fechar ao clicar fora não é elemento clicável: observar o clique sem consumi-lo (monitor de evento local) e fechar quando ele não mudou o estado, nunca uma área de toque invisível, que engole o clique e ganha cursor de mão. Prova: render com o painel aberto por cima da borda do contêiner, e um clique fora que fecha o painel e ainda aciona o que foi clicado.
+5. **A camada por cima segue a aparência escolhida no app.** Claro ou escuro aplicado na janela principal não chega sozinho a toda camada: em app nativo, a folha (sheet) e a janela auxiliar podem seguir o sistema. Aplicar a escolha do app dentro de cada camada, a partir da mesma preferência. Porquê: a folha abre no modo errado justamente para quem escolheu um modo diferente do sistema. Prova: captura da folha aberta com o app em claro e o sistema em escuro, e o inverso.
 
 ## 11c. Destino da direção
 
