@@ -64,6 +64,8 @@ Palavra existe para facilitar o uso. Nomear pelo que o usuário entende, não pe
 
 **Valor interno nunca entra cru numa frase.** Estado, enum ou identificador que compõe texto de interface passa por um único mapa de rótulos legíveis, escrito para caber na frase que o recebe (concordância, preposição, tempo verbal); nenhuma tela interpola o valor do código. Porquê: o nome técnico do estado e a palavra que o usuário lê são coisas diferentes, e a junção solta produz frase quebrada ("em construindo"). Prova: um teste percorre todos os casos do enum, gera a frase de cada um e confere o texto final, e falha quando um caso novo entra sem rótulo.
 
+**Texto montado por código se prova com os casos reais, e trecho nunca termina pela metade.** Data relativa ("hoje", "ontem", dia por extenso), trecho de resumo, contagem com plural e qualquer frase que o código compõe levam teste com os casos reais: virada do dia, fuso, dado vazio, texto longo e o formato que o dado de verdade tem. Trecho exibido termina em fim de frase ou palavra inteira, nunca em dois-pontos, vírgula ou frase incompleta; corte que não acha fim de frase mostra a frase inteira ou nada. Depois de corrigir um defeito apontado, reler o texto inteiro da tela com os dados reais, não só a linha devolvida ([review §2b](playbooks/review.md)). Porquê: o texto composto só aparece com o dado real, e quem conserta só o apontado deixa o vizinho quebrado na mesma tela. Prova: o teste gera cada caso e confere o texto final, e um trecho plantado terminando em dois-pontos falha.
+
 ## Render
 
 Interface que não foi vista não foi revisada. Para app local, [scripts/with_server.py](scripts/with_server.py) sobe o servidor e roda um script Playwright (rodar `--help` primeiro, tratar como caixa-preta):

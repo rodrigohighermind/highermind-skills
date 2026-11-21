@@ -40,6 +40,8 @@ Vale desde o primeiro build de qualquer produto que tem referência.
 
 Defeito apontado pelo dono do produto entra aqui como checagem nova da régua ou do checklist, no mesmo trabalho da correção.
 
+Corrigir os defeitos apontados não fecha a devolução. Antes de entregar de novo, reler todo o texto da tela com os dados reais, linha a linha, como quem lê pela primeira vez. Porquê: defeito de texto vem em classe (data relativa, trecho cortado, frase composta), e o revisor apontou o que viu primeiro, não tudo. Prova: a nova entrega cita a releitura da tela inteira com o dado real, e nenhum texto dela cai no checklist de §8.
+
 ## 3. Screenshots como evidência
 
 Finding visual sem screenshot é hipótese. Disciplina de captura:
@@ -192,6 +194,7 @@ Qualquer item presente = FAIL direto, com localizador:
 - [ ] resposta de agente sem ação de copiar ou sem histórico persistente ([direção §6](direction.md))
 - [ ] palavra abreviada onde cabe por extenso (dia, mês, unidade de tempo)
 - [ ] texto terminado em reticência por falta de espaço (limite de linhas fixo, modo de truncamento ou `…` anexado no código)
+- [ ] trecho exibido terminando em dois-pontos, vírgula ou frase incompleta, ou data relativa errada com o dado real ([SKILL · Texto de interface](../SKILL.md))
 - [ ] conteúdo estruturado todo em tinta e cinza, sem cor por categoria do domínio, ou cor de categoria sem ícone e nome ([direção §8](direction.md))
 - [ ] conteúdo que vai para produto de terceiros com estrutura ou vocabulário diferentes dos do destino ([direção §3c](direction.md))
 
