@@ -36,6 +36,8 @@ Regras:
 
 Uma fatia por vez: implementar, rodar o `verify:`, ler a saída. Commit quando a mudança é coerente e verificada, não por cronômetro, mensagem `tipo(escopo): descrição`. Fatia que falha não avança: corrigir e rodar o `verify:` de novo, sozinho; se a mesma falha resiste a três tentativas com hipóteses diferentes, aplicar o playbook debug ou replanejar, nunca devolver o erro ao Owner como se fosse decisão dele. Desvio do plano é declarado e registrado no próprio plano.
 
+**Bruto pesado se ignora pela pasta, e o stage se confere antes do commit.** Repo que recebe arquivo grande de fora (vídeo, áudio, download, dump, modelo) ignora a pasta de entrada inteira, e a lista de extensões é só a segunda barreira: todo contêiner de vídeo e de áudio (`mkv`, `mp4`, `webm`, `mov`, `m4a`, `wav`) mais os parciais de download (`*.part` e afins). Antes de `git add -A` ou `git add .` nesse repo, conferir o que vai entrar: `git status --short` sem nenhum arquivo dessas classes e, depois do add, o maior arquivo do stage abaixo do teto do projeto. Porquê: lista de extensões está sempre um formato atrás da próxima ferramenta, e um único bruto no stage trava o empacotamento e fica no histórico mesmo depois de apagado. Prova: um arquivo de extensão que a lista não conhece, criado na pasta de entrada, não aparece em `git status --short`; e `git diff --cached --name-only -z | xargs -0 du -k | sort -n | tail -1` mostra o maior arquivo do stage antes de cada commit. Bruto que já entrou em commit não publicado sai refazendo o commit, não com um commit de remoção por cima.
+
 ## 4. Execução com subagentes
 
 Usar quando o plano é grande, as fatias são independentes e o contexto principal precisa ficar limpo para coordenar.

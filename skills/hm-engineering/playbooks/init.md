@@ -38,6 +38,7 @@ O agente executa; a UI dá visibilidade e override. Antes de criar tela: "o agen
 - Estrutura de pastas que torna a arquitetura visível; boundaries claros; engenheiro senior entende em 10 minutos.
 - TypeScript strict / type hints completos. Lint + format com config opinada. Framework de testes pronto.
 - Quality commands funcionando desde o commit zero: `typecheck`, `lint`, `test`, `build`. São os comandos que o gate de ship vai rodar; se não existem, baseline-ready nunca é verificável.
+- Projeto que lida com mídia ou download nasce com a pasta de brutos inteira no `.gitignore`, além de todo contêiner de vídeo e áudio e dos parciais de download. Regra e prova em [build §3](build.md) · Bruto pesado se ignora pela pasta.
 - Sem arquivo placeholder, sem TODO no dia um. Tudo que existe funciona. O projeto RODA após o init.
 
 ## 3b. App nativo macOS: nasce do starter
