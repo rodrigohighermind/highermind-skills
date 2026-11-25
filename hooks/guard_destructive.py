@@ -19,12 +19,14 @@ Desligar por sessão: HM_ORBIT_GUARD=off.
 
 from __future__ import annotations
 
+import ast
 import json
 import os
 import re
 import shlex
 import sys
 import time
+import warnings
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -37,12 +39,17 @@ PROTECTED = {"/", "/Users", "/System", "/Applications", "/Library", "/usr", "/bi
 SHELLS = {"bash", "sh", "zsh", "dash", "fish", "ksh"}
 SQL_CLIENTS = {"psql", "sqlite3", "mysql", "mariadb", "duckdb", "pgcli", "litecli", "clickhouse-client"}
 WRAPPERS_NO_ARG = {"command", "exec", "nohup", "time", "builtin"}
+SHELL_KEYWORDS = {"do", "then", "else", "elif", "if", "while", "until", "{", "!"}
 WRAPPER_ARG_FLAGS = {"nice": {"-n"}, "caffeinate": {"-t", "-w"}, "ionice": {"-c", "-n"}, "stdbuf": {"-i", "-o", "-e"}}
 RUNNERS = {"npx": 1, "bunx": 1, "pnpx": 1, "uvx": 1, "pnpm": 2, "yarn": 2, "npm": 2, "bun": 2}
 SUDO_ARG_FLAGS = {"-u", "-g", "-h", "-p", "-C", "-D", "-r", "-t", "-U"}
 XARGS_ARG_FLAGS = {"-I", "-n", "-P", "-L", "-d", "-s", "-E", "-a", "-J", "-R", "-S"}
 GIT_ARG_FLAGS = {"-C", "-c", "--git-dir", "--work-tree", "--namespace", "--exec-path"}
 RISKY_WORDS = re.compile(r"\b(rm|reset|clean|push|drop|truncate|delete|prune|down|mkfs|dd|diskutil|restore|checkout)\b", re.IGNORECASE)
+DESTRUCTIVE_CODE = re.compile(r"rmtree|os\.remove|os\.unlink|unlinkSync|rmSync|rm_rf|FileUtils\.rm|\bdrop\s+table\b|\btruncate\b|delete\s+from", re.IGNORECASE)
+PY_DELETERS = {"rmtree", "unlink", "rmdir", "removedirs", "truncate"}
+PY_RUNNERS = {"system", "popen", "run", "call", "check_call", "check_output", "Popen"}
+PY_SQL = re.compile(r"exec|sql|query", re.IGNORECASE)
 GLOB_OR_VAR = re.compile(r"[*?\[\]$`]")
 SUBSTITUTION = re.compile(r"\$\(([^()]*)\)|`([^`]*)`|<\(([^()]*)\)")
 MAX_DEPTH = 4
@@ -67,6 +74,70 @@ def is_temp_var(path: str) -> bool:
     if match is None:
         return False
     return match.group(1) in TEMP_VARS and ".." not in (match.group(2) or "")
+
+
+KNOWN_VARS: dict[str, str] = {}
+# `$X:h`, `$X[1]` e `$X(:h)` são modificadores do zsh que trocam o caminho (pai, elemento): ficam sem resolver.
+VAR_REF = re.compile(r"(?:\$\{([A-Za-z_]\w*)\}|\$([A-Za-z_]\w*))(?![\w:\[(])")
+DECLARATORS = {"export", "local", "readonly"}
+BLOCK_OPENERS = {"if", "while", "until", "for", "case", "select"}
+BLOCK_CLOSERS = {"fi", "done", "esac"}
+RELOADS_VARS = re.compile(r"(?:^|[;&|\n(])\s*(?:source|eval|\.)\s")
+
+
+def block_state(tokens: list[str], blocks: int, parens: int) -> tuple[int, int, bool]:
+    """Acompanha if/laço/case/função e subshell. Devolve os níveis depois do segmento e se ele roda dentro de um.
+
+    Atribuição dentro de bloco pode não ter rodado (condição falsa, função nunca chamada) ou não valer
+    fora dele (subshell), então nunca serve para liberar um rm.
+    """
+    opened = closed = 0
+    for token in tokens:
+        if token in BLOCK_OPENERS:
+            opened += 1
+        elif token in BLOCK_CLOSERS:
+            closed += 1
+        elif token not in SHELL_KEYWORDS and token != "}":
+            break
+    opened += tokens.count("{")
+    closed += tokens.count("}")
+    paren_open = 1 if tokens[0].startswith("(") and not tokens[0].startswith("((") else 0
+    paren_close = sum(1 for token in tokens if token.endswith(")") and "(" not in token.lstrip("("))
+    inside = blocks + opened > 0 or parens + paren_open > 0
+    return max(0, blocks + opened - closed), max(0, parens + paren_open - paren_close), inside
+
+
+def expand_known(path: str) -> str:
+    """Troca `$X` pelo caminho literal que o próprio comando atribuiu a X; o resto fica como veio."""
+    return VAR_REF.sub(lambda m: KNOWN_VARS.get(m.group(1) or m.group(2), m.group(0)), path)
+
+
+def track_assignments(tokens: list[str], unconditional: bool, command: str) -> bool:
+    """Registra `X=/caminho/literal` para o rm seguinte ser julgado pelo caminho real, não por `$X`.
+
+    Só vale atribuição que com certeza rodou e é a única do comando: segmento só de atribuições, fora
+    de bloco e de subshell, sem `||` nem `&&` vindo de algo que pode falhar, nome não reatribuído nem
+    alvo de for/read/unset, e sem source/eval no comando.
+    Na dúvida a variável fica desconhecida e o rm pede confirmação. Devolve se o segmento é puro.
+    """
+    names = tokens[1:] if tokens and tokens[0] in DECLARATORS else tokens
+    if not names or not all(ASSIGNMENT.match(token) for token in names):
+        return False
+    reloads = RELOADS_VARS.search(command) is not None  # source/eval podem reatribuir qualquer nome
+    for token in names:
+        name, value = token.split("=", 1)
+        KNOWN_VARS.pop(name, None)
+        if not unconditional or reloads or len(re.findall(rf"(?<![\w$]){name}\+?=", command)) != 1:
+            continue
+        if re.search(rf"\b(for|select)\s+{name}\b|\b(read|unset|getopts|printf|mapfile|readarray|let)\b[^;&|\n]*\b{name}\b", command):
+            continue
+        if "$" in value and re.search(rf"(?<![\w$]){name}=[^\s;&|]*'", command):
+            continue
+        value = expand_known(value)
+        # Valor com espaço se divide em vários alvos quando usado sem aspas: não dá para julgar como um caminho.
+        if value and not GLOB_OR_VAR.search(value) and not re.search(r"\s", value):
+            KNOWN_VARS[name] = value
+    return True
 
 
 def is_disposable(path: str, cwd: Path) -> bool:
@@ -94,8 +165,14 @@ def is_catastrophic_target(path: str, cwd: Path) -> bool:
 
 def strip_wrappers(tokens: list[str], cwd: Path) -> tuple[list[str], Path]:
     while tokens:
+        if tokens[0].startswith("(") and not tokens[0].startswith("(("):
+            # Subshell `( cmd )`: o comando de dentro é analisado como qualquer outro.
+            inner = [tokens[0].lstrip("("), *tokens[1:]]
+            inner[-1] = inner[-1].rstrip(")")
+            tokens = [token for token in inner if token]
+            continue
         head = Path(tokens[0]).name
-        if ASSIGNMENT.match(tokens[0]):
+        if ASSIGNMENT.match(tokens[0]) or tokens[0] in SHELL_KEYWORDS:
             tokens = tokens[1:]
         elif head == "env":
             tokens = tokens[1:]
@@ -144,7 +221,7 @@ def check_rm(args: list[str], cwd: Path) -> Verdict | None:
     long_flags = {a for a in args if a.startswith("--")}
     if not (set(flags) & {"r", "R", "f"} or long_flags & {"--recursive", "--force"}):
         return None
-    targets = [a for a in args if not a.startswith("-")]
+    targets = [expand_known(a) for a in args if not a.startswith("-")]
     if any(is_catastrophic_target(t, cwd) for t in targets):
         return "deny", f"rm em alvo catastrófico: {' '.join(targets)}"
     outside = [t for t in targets if not is_disposable(t, cwd)]
@@ -243,13 +320,58 @@ def check_sql_client(args: list[str], cwd: Path) -> Verdict | None:
     texts += [a.split("=", 1)[1] for a in args if a.startswith("--command=")]
     for name in files:
         try:
-            texts.append(Path(resolve(name, cwd)).read_text(encoding="utf-8", errors="replace"))
+            texts.append(Path(resolve(expand_known(name), cwd)).read_text(encoding="utf-8", errors="replace"))
         except OSError:
             return "ask", f"script SQL não legível para análise: {name}"
     for text in texts:
         verdict = check_sql(text)
         if verdict:
             return verdict
+    return None
+
+
+def literal_text(node: ast.expr) -> str | None:
+    """Texto de um argumento literal; trecho interpolado de f-string vira `x`, lista vira linha de comando."""
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        return node.value
+    if isinstance(node, ast.JoinedStr):
+        return "".join(part.value if isinstance(part, ast.Constant) and isinstance(part.value, str) else "x" for part in node.values)
+    if isinstance(node, (ast.List, ast.Tuple)):
+        parts = [literal_text(item) for item in node.elts]
+        return shlex.join(part if part is not None else "$x" for part in parts)
+    return None
+
+
+def check_python(code: str, cwd: Path, depth: int) -> Verdict | None:
+    """Julga o que o Python executa, não o texto que ele carrega: string que edita arquivo não é comando."""
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")  # escape inválido no código analisado não é assunto do guard
+            tree = ast.parse(code)
+    except (SyntaxError, ValueError, RecursionError):
+        return ("ask", "código Python não analisável com termo destrutivo") if DESTRUCTIVE_CODE.search(code) else None
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        func = node.func
+        name = func.attr if isinstance(func, ast.Attribute) else func.id if isinstance(func, ast.Name) else ""
+        # `x.remove(...)` de lista não apaga arquivo; `os.remove(...)` e `remove(...)` importado apagam.
+        os_remove = name == "remove" and (isinstance(func, ast.Name) or (isinstance(func, ast.Attribute) and isinstance(func.value, ast.Name) and func.value.id == "os"))
+        if name in PY_DELETERS or os_remove:
+            return "ask", f"código Python apagando arquivo ou dado ({name})"
+        texts = [text for text in (literal_text(arg) for arg in node.args) if text]
+        for text in texts:
+            verdict = None
+            if depth >= MAX_DEPTH:
+                verdict = ("ask", "código aninhado demais") if name in PY_RUNNERS | {"exec", "eval"} else None
+            elif name in {"exec", "eval"}:
+                verdict = check_python(text, cwd, depth + 1)
+            elif name in PY_RUNNERS:
+                verdict = decide(text, cwd, depth + 1)
+            elif PY_SQL.search(name):
+                verdict = check_sql(text)
+            if verdict:
+                return verdict
     return None
 
 
@@ -270,9 +392,11 @@ def check_tokens(tokens: list[str], cwd: Path, depth: int) -> Verdict | None:
         if not [a for a in args if not a.startswith("-")]:
             return "ask", "shell executando comandos vindos do stdin (pipe), conteúdo não analisável"
         return None
-    if program in {"python", "python3", "node", "ruby", "perl", "deno", "bun"} and any(a in {"-c", "-e", "--eval"} for a in args):
+    if program in {"python", "python3"} and "-c" in args[:-1]:
+        return check_python(args[args.index("-c") + 1], cwd, depth)
+    if program in {"node", "ruby", "perl", "deno", "bun"} and any(a in {"-c", "-e", "--eval"} for a in args):
         code = " ".join(args)
-        if re.search(r"rmtree|os\.remove|os\.unlink|unlinkSync|rmSync|rm_rf|FileUtils\.rm|\bdrop\s+table\b|\btruncate\b|delete\s+from", code, re.IGNORECASE):
+        if DESTRUCTIVE_CODE.search(code):
             return "ask", f"código inline de {program} apagando arquivo ou dado"
         return None
     if program == "eval":
@@ -327,17 +451,28 @@ def segments(command: str) -> list[tuple[list[str], str, str]]:
     return [segment for segment in result if segment[0]]
 
 
-HEREDOC = re.compile(r"<<-?\s*(['\"]?)(\w+)\1[^\n]*\n(.*?)\n\s*\2\b", re.DOTALL)
-FEEDS_INTERPRETER = re.compile(r"\b(bash|sh|zsh|dash|ksh|eval|python3?|node|ruby|perl)\b[^|;&\n]*<<|\|\s*(bash|sh|zsh)\b")
+HEREDOC = re.compile(r"<<-?\s*(['\"]?)(\w+)\1([^\n]*)\n(.*?)\n\s*\2\b", re.DOTALL)
+READS_SHELL = re.compile(r"\b(bash|sh|zsh|dash|ksh|eval)\b")
+PIPES_TO_SHELL = re.compile(r"\|\s*(bash|sh|zsh)\b")
+READS_PYTHON = re.compile(r"\bpython3?\b")
+PIPES_TO_PYTHON = re.compile(r"\|\s*python3?\b")
+READS_CODE = re.compile(r"\b(node|ruby|perl)\b")
 
 
-def strip_heredocs(command: str) -> tuple[str, list[str]]:
-    """Corpo de heredoc é dado, não comando; separado para análise só quando alimenta shell ou SQL."""
-    bodies: list[str] = []
+def strip_heredocs(command: str) -> tuple[str, list[tuple[str, str]]]:
+    """Corpo de heredoc é dado, não comando: sai do texto e volta com quem o lê (shell, python, code)."""
+    bodies: list[tuple[str, str]] = []
 
     def keep(match: re.Match[str]) -> str:
-        bodies.append(match.group(3))
-        return "<<HEREDOC"
+        reader = re.split(r"[|;&\n]", command[: match.start()])[-1]
+        if READS_SHELL.search(reader) or PIPES_TO_SHELL.search(match.group(3)):
+            kind = "shell"
+        elif READS_PYTHON.search(reader) or PIPES_TO_PYTHON.search(match.group(3)):
+            kind = "python"
+        else:
+            kind = "code" if READS_CODE.search(reader) else "data"
+        bodies.append((kind, match.group(4)))
+        return f"<<HEREDOC{match.group(3)}"
 
     return HEREDOC.sub(keep, command), bodies
 
@@ -346,14 +481,22 @@ def decide(command: str, cwd: Path, depth: int = 0) -> Verdict | None:
     if depth == 0:
         TEMP_VARS.clear()
         TEMP_VARS.update(MKTEMP_ASSIGN.findall(command))
+        KNOWN_VARS.clear()
     command = command.replace("\\\n", " ")
     command, bodies = strip_heredocs(command)
     verdicts: list[Verdict] = []
-    for body in bodies:
-        if FEEDS_INTERPRETER.search(command) and depth < MAX_DEPTH:
+    # Cada heredoc é julgado por quem o lê: shell passa pela análise inteira, Python pela árvore do
+    # código, node/ruby/perl por chamada destrutiva conhecida. Texto gravado em arquivo é só dado.
+    for kind, body in bodies:
+        verdict = None
+        if kind == "shell" and depth < MAX_DEPTH:
             verdict = decide(body, cwd, depth + 1)
-            if verdict:
-                verdicts.append(verdict)
+        elif kind == "python":
+            verdict = check_python(body, cwd, depth)
+        elif kind == "code" and DESTRUCTIVE_CODE.search(body):
+            verdict = ("ask", "código em heredoc apagando arquivo ou dado")
+        if verdict:
+            verdicts.append(verdict)
     for match in SUBSTITUTION.finditer(command):
         inner = next(group for group in match.groups() if group is not None)
         if depth < MAX_DEPTH:
@@ -365,17 +508,24 @@ def decide(command: str, cwd: Path, depth: int = 0) -> Verdict | None:
     except ValueError:
         return ("ask", "comando arriscado que não pôde ser analisado (quoting)") if RISKY_WORDS.search(command) else None
     if bodies and any(Path(strip_wrappers(tokens, cwd)[0][0]).name in SQL_CLIENTS for tokens, _, _ in parsed if strip_wrappers(tokens, cwd)[0]):
-        verdict = check_sql("\n".join(bodies))
+        verdict = check_sql("\n".join(body for _, body in bodies))
         if verdict:
             verdicts.append(verdict)
     relinks = any(Path(strip_wrappers(t, cwd)[0][0]).name in {"ln", "mv", "cp", "rsync"} for t, _, _ in parsed if strip_wrappers(t, cwd)[0])
     effective_cwd = cwd
+    chain_certain = True
+    blocks = parens = 0
     for tokens, before, after in parsed:
+        if depth == 0:
+            blocks, parens, inside = block_state(tokens, blocks, parens)
+            # Certo de ter rodado: fora de bloco, no começo, depois de `;`, ou `&&` numa cadeia só de atribuições.
+            certain = not inside and (before in {"", ";"} or (before == "&&" and chain_certain))
+            chain_certain = track_assignments(tokens, certain and after in {"", ";", "&&"}, command) and certain
         stripped, _ = strip_wrappers(tokens, effective_cwd)
         if stripped and stripped[0] == "cd":
             # cd dentro de pipeline roda num subshell e não muda o diretório dos próximos comandos.
             if "|" not in (before, after):
-                effective_cwd = Path(resolve(stripped[1] if len(stripped) > 1 else str(Path.home()), effective_cwd))
+                effective_cwd = Path(resolve(expand_known(stripped[1]) if len(stripped) > 1 else str(Path.home()), effective_cwd))
             continue
         verdict = check_tokens(tokens, effective_cwd, depth)
         if verdict is None and relinks and stripped and Path(stripped[0]).name == "rm" and re.search(r"(^|\s)-\w*[rRf]", " ".join(stripped)):

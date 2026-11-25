@@ -361,6 +361,17 @@ exit $fail
 
 Bypassa RLS por design. Só em código server-side com autenticação prévia. Nunca no client. Auditar `git log -S "service_role"` pra confirmar que a key nunca foi commitada.
 
+## 12. Mudança que afrouxa uma barreira
+
+Vale para guard de comando, validação de entrada, policy de RLS, permissão, allowlist e qualquer regra cujo papel é negar.
+
+- **Afrouxar só entra depois de uma rodada adversarial escrita como teste.** Antes de instalar ou publicar, tentar de propósito fazer a regra nova liberar o que não devia, e cada tentativa vira caso de teste que fica no repo. Porquê: quem escreve a exceção testa o caso que quis liberar e os negativos óbvios; o furo mora nas formas que o autor não imaginou, e caso feliz verde não é evidência de segurança.
+- **A rodada parte de um inventário das formas de a premissa ser falsa**, não de exemplos soltos. Regra que libera "quando o valor é conhecido" lista toda forma de o valor não ser o que parece: atribuição que pode não ter rodado (dentro de condicional, laço, função, subshell), valor vindo de código carregado ou avaliado em tempo de execução, valor com espaço ou caractere especial, expansão e modificador próprios de cada shell ou dialeto que a regra atende. Na dúvida sobre o valor, a regra nega.
+- **Quem tenta furar a regra não é quem a escreveu**: outro modelo, outra sessão ou outra pessoa, recebendo a regra e o pedido "faça liberar o que não deve", como em `review.md`.
+- **Comparar a regra antiga com a nova sobre entradas reais completas.** Reexecutar as duas no histórico de entradas e ler toda divergência: cada entrada que passou de negada para liberada é justificada uma a uma. Registro truncado ou resumido (telemetria que guarda só o começo da entrada) não serve para reexecutar veredito, porque o trecho cortado é justamente onde a forma perigosa se esconde; usar a fonte que guarda a entrada inteira, e sem ela declarar a comparação `NOT_VERIFIED`.
+
+Prova: os testes adversariais no repo, falhando contra a primeira versão da exceção e passando na final; e a lista de divergências antigo contra novo sobre entradas completas, sem nenhuma liberação nova sem justificativa.
+
 ## Contrato do finding
 
 Finding de segurança só existe quando nomeia a cadeia inteira:
