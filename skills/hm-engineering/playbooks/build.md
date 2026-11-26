@@ -79,6 +79,8 @@ Vale para qualquer produto com fila, job ou processamento longo.
 
 Duas entradas para o mesmo resultado (ao vivo e reprocessar, import e edição, API e CLI) chamam **a mesma função** de pipeline, nunca cópias que divergem. O e2e exercita as duas entradas com o mesmo insumo e exige saída igual; foi assim que um reprocessamento sem uma etapa de formatação apareceu.
 
+**Quem regera um artefato atualiza, no mesmo passo, toda cópia que outro estágio consome.** Passo que regrava um derivado (vídeo recortado, bundle, índice, modelo exportado) também atualiza a cópia ou o link que a prévia, o render ou o gate leem, ou esses estágios passam a ler o original direto. Cópia feita só no script de preparação inicial é bug latente: a primeira regeração deixa o consumidor no arquivo velho, e a prévia e o gate aprovam o que não é mais o produto. Porquê: o erro é silencioso, porque tudo roda verde contra o artefato antigo. Prova: depois de regerar, o hash (ou mtime e tamanho) da fonte e de cada cópia consumida batem; o gate falha se a cópia for mais antiga que a fonte.
+
 ## 5. Fechamento
 
 - Achado do `floor_guard` (supressão `noqa`, `type: ignore`, gambiarra de `sys.path`) se corrige na causa, nunca com outra supressão. Import quebrado em script ou bench se resolve rodando com o ambiente do projeto e o pacote instalado em modo editável (`pip install -e .`, `uv run`), não editando o caminho de import.
