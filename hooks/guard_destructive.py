@@ -146,6 +146,10 @@ def track_assignments(tokens: list[str], unconditional: bool, command: str) -> b
 def is_disposable(path: str, cwd: Path) -> bool:
     if is_temp_var(path):
         return True
+    head, _, last = path.rstrip("/").rpartition("/")
+    if head and re.search(r"[*?]", last) and not re.search(r"[\[\]$`]", last) and ".." not in last and not GLOB_OR_VAR.search(head):
+        # Curinga só no último pedaço, dentro de pasta descartável: tudo que ele casa mora nela.
+        return is_disposable(head, cwd) and Path(head).name not in REGENERABLE
     if GLOB_OR_VAR.search(os.path.expanduser(path).replace("$HOME", "").replace("${HOME}", "")):
         return False
     if re.search(r"\{[^}]*(,|\.\.)[^}]*\}", path):

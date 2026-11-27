@@ -139,6 +139,12 @@ system: [
 - Streams fechadas, readers liberados.
 - Leak em processo background = bloqueio: vai cair em horas ou dias.
 
+**Processo residente tem orçamento de memória medido.** App local ou serviço que fica aberto o dia todo declara um teto de memória em repouso e o gate mede contra ele, com o processo parado depois de uso real. Porquê: na máquina pessoal, memória residente é custo pago por todo o resto que roda junto, e ninguém percebe o crescimento até a máquina entrar em swap. Prova: o gate registra a memória do processo parado depois de exercitar os caminhos principais e falha acima do teto.
+
+**Cache de alocador do framework de inferência tem teto explícito.** Framework de inferência local que retém buffers liberados para reuso costuma vir com cache sem limite por padrão; todo processo que usa um define o teto na partida, antes de carregar o primeiro modelo. Conferir na versão instalada qual é o padrão e qual chamada fixa o limite. Porquê: o cache cresce até o pico de uso e não devolve, então um processo residente acumula gigabytes além dos pesos sem vazar nada no sentido clássico. Prova: memória em repouso medida com e sem o teto, depois da mesma carga.
+
+**Só fica residente o modelo que está no caminho de latência do uso diário.** Modelo de uso raro carrega sob demanda e descarrega após um período de inatividade. O aquecimento na partida (seção Latência percebida) vale para o modelo do uso diário, não para todo modelo que o processo sabe usar. Porquê: pesos residentes de um modelo que roda poucas vezes por dia custam memória o dia inteiro para economizar segundos raras vezes. Prova: depois do uso raro e do prazo de inatividade, a memória do processo volta ao orçamento em repouso; o primeiro uso raro mede o tempo de carga e ele cabe no limite combinado para aquela ação.
+
 ## S3 multipart · part size × banda (lei cravada)
 
 Em multipart upload pro S3, cada PUT individual precisa completar em **menos de ~10s** sob a banda de upload realista do usuário. O idle timeout do S3 é ~20-30s (não documentado); PUT que chega perto disso cai com jitter de wifi.
