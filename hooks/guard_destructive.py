@@ -55,6 +55,9 @@ SUBSTITUTION = re.compile(r"\$\(([^()]*)\)|`([^`]*)`|<\(([^()]*)\)")
 MAX_DEPTH = 4
 PROTECTED_BRANCHES = {"main", "master"}
 ASSIGNMENT = re.compile(r"^[A-Za-z_]\w*=")
+# Pasta que a ferramenta regenera sozinha: apagar nunca perde dado. dist/ e build/ ficam de fora (podem ter entregável).
+REGENERABLE = {"node_modules", ".build", "DerivedData", "__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache", ".next", ".turbo", ".parcel-cache", ".cache"}
+VOLATILE_ROOTS = ("/private/tmp/", "/private/var/folders/")
 
 
 
@@ -145,11 +148,16 @@ def is_disposable(path: str, cwd: Path) -> bool:
         return True
     if GLOB_OR_VAR.search(os.path.expanduser(path).replace("$HOME", "").replace("${HOME}", "")):
         return False
-    resolved = resolve(path, cwd)
-    tmpdir = os.environ.get("TMPDIR", "")
-    if tmpdir and resolved.startswith(os.path.realpath(tmpdir).rstrip("/") + "/"):
-        return True
-    return resolved.startswith("/private/tmp/claude-") and resolved.count("/") >= 4
+    if re.search(r"\{[^}]*(,|\.\.)[^}]*\}", path):
+        return False  # expansão de chaves vira vários caminhos que o realpath não enxerga
+    resolved = resolve(path, cwd)  # realpath: symlink já existente é julgado pelo destino real
+    if resolved.startswith("/private/tmp/claude-"):
+        # /private/tmp/claude-<uid>/<projeto> guarda o scratchpad de todas as sessões: só abaixo dele é descartável.
+        return resolved.count("/") >= 5
+    tmpdir = os.path.realpath(os.environ.get("TMPDIR", "") or "/private/tmp")
+    if resolved.startswith(tmpdir.rstrip("/") + "/") or resolved.startswith(VOLATILE_ROOTS):
+        return resolved.count("/") >= 3  # subpasta de pasta volátil, nunca a raiz dela
+    return Path(resolved).name in REGENERABLE and ".." not in path
 
 
 def is_catastrophic_target(path: str, cwd: Path) -> bool:
@@ -511,7 +519,10 @@ def decide(command: str, cwd: Path, depth: int = 0) -> Verdict | None:
         verdict = check_sql("\n".join(body for _, body in bodies))
         if verdict:
             verdicts.append(verdict)
-    relinks = any(Path(strip_wrappers(t, cwd)[0][0]).name in {"ln", "mv", "cp", "rsync"} for t, _, _ in parsed if strip_wrappers(t, cwd)[0])
+    # Só ln e mv fazem um caminho temporário passar a apontar para dado real; cp e rsync copiam, não movem.
+    relinks = any(Path(strip_wrappers(t, cwd)[0][0]).name in {"ln", "mv"} for t, _, _ in parsed if strip_wrappers(t, cwd)[0])
+    created: set[str] = set()
+    verified: set[tuple[str, str]] = set()
     effective_cwd = cwd
     chain_certain = True
     blocks = parens = 0
@@ -527,6 +538,25 @@ def decide(command: str, cwd: Path, depth: int = 0) -> Verdict | None:
             if "|" not in (before, after):
                 effective_cwd = Path(resolve(expand_known(stripped[1]) if len(stripped) > 1 else str(Path.home()), effective_cwd))
             continue
+        program = Path(stripped[0]).name if stripped else ""
+        plain = [expand_known(a) for a in stripped[1:] if not a.startswith("-")]
+        literal = bool(plain) and not any(GLOB_OR_VAR.search(a) or re.search(r"\{.*[,.].*\}", a) for a in plain)
+        if program in {"cp", "install"} and literal and len(plain) >= 2 and "-t" not in stripped:
+            # Destino que ainda não existe nasce neste comando e o original fica intacto.
+            dest = resolve(plain[-1], effective_cwd)
+            if not os.path.lexists(dest):
+                created.add(dest)
+        if program == "cmp" and literal and len(plain) == 2 and after == "&&":
+            # `cmp A B && rm A`: a outra cópia foi conferida byte a byte no mesmo comando.
+            a, b = (resolve(x, effective_cwd) for x in plain)
+            if a != b:
+                verified.update({(a, b), (b, a)})
+        if program == "rm" and literal:
+            targets = {resolve(a, effective_cwd) for a in plain}
+            kept = all(any(t == x and y not in targets for x, y in verified) for t in targets) and before == "&&"
+            if targets <= created or kept:
+                verified = {(x, y) for x, y in verified if x not in targets and y not in targets}
+                continue  # apaga só a cópia que o comando criou, ou um original cuja cópia conferida fica
         verdict = check_tokens(tokens, effective_cwd, depth)
         if verdict is None and relinks and stripped and Path(stripped[0]).name == "rm" and re.search(r"(^|\s)-\w*[rRf]", " ".join(stripped)):
             verdict = ("ask", "rm recursivo no mesmo comando que ln/mv/cp: o alvo temporário pode apontar para dado real")
