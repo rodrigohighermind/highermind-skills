@@ -372,6 +372,8 @@ Vale para guard de comando, validação de entrada, policy de RLS, permissão, a
 
 Prova: os testes adversariais no repo, falhando contra a primeira versão da exceção e passando na final; e a lista de divergências antigo contra novo sobre entradas completas, sem nenhuma liberação nova sem justificativa.
 
+**Barreira que pergunta demais também é defeito.** Guard de comando pede confirmação só quando o alvo pode ser dado real do dono. Alvo provadamente volátil (subpasta da área temporária do sistema, nunca a raiz dela nem a raiz compartilhada entre sessões, e que não seja symlink) ou regenerável (lista fechada de nomes de cache como `node_modules`, `__pycache__`, `.pytest_cache`, `DerivedData`; nunca `dist/` nem `build/`, que podem guardar entregável) passa direto. Construção que o parser não entende se resolve ensinando o parser, medida nas entradas que mais caem nesse balde, não com mais uma pergunta. Porquê: pergunta frequente sobre alvo inofensivo ensina a aprovar no reflexo, e a confirmação que importa passa junto. Prova: contagem de pedidos por motivo na telemetria antes e depois, e teste por classe que inclui os que continuam pedindo (pasta em documentos do usuário, `dist`, symlink na área temporária apontando para a home, raiz da área temporária). A rodada adversarial acima vale igual: isto é afrouxamento.
+
 ## Contrato do finding
 
 Finding de segurança só existe quando nomeia a cadeia inteira:
