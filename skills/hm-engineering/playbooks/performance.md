@@ -145,6 +145,12 @@ system: [
 
 **Só fica residente o modelo que está no caminho de latência do uso diário.** Modelo de uso raro carrega sob demanda e descarrega após um período de inatividade. O aquecimento na partida (seção Latência percebida) vale para o modelo do uso diário, não para todo modelo que o processo sabe usar. Porquê: pesos residentes de um modelo que roda poucas vezes por dia custam memória o dia inteiro para economizar segundos raras vezes. Prova: depois do uso raro e do prazo de inatividade, a memória do processo volta ao orçamento em repouso; o primeiro uso raro mede o tempo de carga e ele cabe no limite combinado para aquela ação.
 
+**Processo residente tem orçamento de CPU em repouso medido.** App de barra de menus, agente ou serviço que fica aberto o dia todo declara um teto de CPU parado, perto de zero, e o gate do projeto mede contra ele com o processo ocioso depois de uso real e com toda janela e painel escondidos. Porquê: consumo em repouso não aparece em nenhum teste funcional e é pago o dia inteiro em bateria e calor, por um app que o usuário nem está usando. Prova: amostra de CPU do processo ocioso por um intervalo fixo, registrada no gate, que falha acima do teto.
+
+**Interface escondida não existe.** View de janela ou painel que está oculto é desmontada ao esconder e criada ao mostrar; animação contínua (loop infinito, spinner, pulso) nunca vive numa view que pode existir sem estar visível. Porquê: o framework de UI segue atualizando quadro a quadro a animação de uma view montada mesmo quando ninguém a vê, e criar a view na partida "para abrir mais rápido" transforma isso em custo permanente. Prova: com o painel escondido, a amostra de CPU em repouso não muda entre ter e não ter a animação no código.
+
+**Polling caro só atrás de um gate barato.** Varredura periódica que custa (enumerar processos, dispositivos, arquivos, janelas) roda só depois de uma consulta barata dizer que há algo a procurar, de preferência por notificação do sistema em vez de timer. Porquê: na maior parte do dia a resposta é "nada mudou", e pagar a varredura inteira a cada tique para descobrir isso é o custo dominante do repouso. Prova: com a condição ausente, o ciclo executa só a consulta barata, conferido por contador ou amostra de CPU.
+
 ## S3 multipart · part size × banda (lei cravada)
 
 Em multipart upload pro S3, cada PUT individual precisa completar em **menos de ~10s** sob a banda de upload realista do usuário. O idle timeout do S3 é ~20-30s (não documentado); PUT que chega perto disso cai com jitter de wifi.
